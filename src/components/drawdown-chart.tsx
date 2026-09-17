@@ -6,7 +6,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export function DrawdownChart({ data }: { data: DrawdownPoint[] }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+    <div className="qe-card p-5">
       <h2 className="mb-4 text-sm font-semibold text-slate-900">Drawdown</h2>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>

@@ -67,6 +67,7 @@ export interface BacktestSettings {
 export interface Trade {
   id: number;
   direction: "LONG";
+  symbol: string;
   entryDate: string;
   entryPrice: number;
   exitDate: string;
@@ -74,7 +75,16 @@ export interface Trade {
   quantity: number;
   pnl: number;
   pnlPct: number;
+  /** All entries in this engine are strategy-signal driven; kept as an explicit field so future entry types (e.g. manual) can be distinguished. */
+  entryReason: "Strategy signal";
   reason: "SIGNAL_EXIT" | "END_OF_PERIOD";
+  /**
+   * Transaction charges (brokerage/slippage/taxes) for this trade.
+   * Undefined means the cost model has not been implemented yet — this is
+   * never defaulted to 0 or estimated, so the UI can tell "not modeled"
+   * apart from "modeled and zero".
+   */
+  charges?: number;
 }
 
 export interface EquityPoint {
@@ -96,6 +106,7 @@ export interface MonthlyReturn {
 export interface PerformanceSummary {
   startingCapital: number;
   endingCapital: number;
+  netPnl: number;
   totalReturnPct: number;
   cagrPct: number;
   maxDrawdownPct: number;

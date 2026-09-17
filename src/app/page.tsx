@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { BacktestResult, BacktestSettings, SymbolInfo } from "@/lib/types";
-import { DATA_PROVIDERS, DEFAULT_PROVIDER_ID, getProvider } from "@/lib/data/registry";
+import { DEFAULT_PROVIDER_ID, getProvider } from "@/lib/data/registry";
 import { runBacktest } from "@/lib/backtest/run-backtest";
-import { StrategyConfigPanel } from "@/components/strategy-config-panel";
+import { ConfigPanel } from "@/components/backtester/config-panel";
 import { ResultsDashboard } from "@/components/results-dashboard";
 import { DemoDataBanner } from "@/components/demo-data-banner";
 
@@ -61,23 +61,22 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-4">
-          <h1 className="text-lg font-semibold text-slate-900">Strategy Backtester</h1>
-          <p className="text-sm text-slate-500">
-            Configure a strategy and run it against{" "}
-            {DATA_PROVIDERS.find((p) => p.id === settings.providerId)?.label.toLowerCase()}.
+    <div className="min-h-screen bg-slate-100">
+      <div className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6">
+          <h1 className="text-xl font-semibold text-slate-900">Strategy Backtester</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Configure a strategy, run it against demo market data, and review the results below.
           </p>
         </div>
-      </header>
+      </div>
 
-      <div className="mx-auto max-w-7xl space-y-5 px-6 py-6">
+      <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 sm:px-6">
         <DemoDataBanner />
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[360px_1fr]">
-          <div className="lg:sticky lg:top-6 lg:self-start">
-            <StrategyConfigPanel
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[380px_1fr]">
+          <div className="lg:sticky lg:top-[72px] lg:self-start">
+            <ConfigPanel
               symbols={symbols}
               settings={settings}
               onChange={setSettings}
@@ -86,7 +85,7 @@ export default function HomePage() {
             />
           </div>
 
-          <div>
+          <div id="results" className="scroll-mt-20">
             {error && (
               <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {error}

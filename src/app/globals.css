@@ -1,8 +1,20 @@
 @import "tailwindcss";
 
+/*
+  Quant Edge brand tokens.
+  Deep navy chrome (header/nav) + a slate content surface + a teal/cyan
+  accent for interactive elements and data highlights. Chosen to read as
+  a serious quant/trading tool without copying any specific existing
+  product's palette.
+*/
 :root {
-  --background: #f8fafc;
+  --background: #f1f5f9;
   --foreground: #0f172a;
+  --qe-navy-950: #0a0f1e;
+  --qe-navy-900: #0f172a;
+  --qe-navy-800: #141e33;
+  --qe-accent: #14b8a6;
+  --qe-accent-dark: #0d9488;
 }
 
 @theme inline {
@@ -30,7 +42,43 @@ body {
     background: white;
   }
   .input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 1px #3b82f6;
+    border-color: var(--qe-accent);
+    box-shadow: 0 0 0 1px var(--qe-accent);
+  }
+  .input:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+  }
+
+  .qe-card {
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+  }
+
+  .qe-section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .qe-figure {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .qe-badge-soon {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 0.125rem 0.5rem;
   }
 }

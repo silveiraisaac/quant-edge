@@ -50,6 +50,7 @@ export function computeSummary(
   trades: Trade[],
 ): PerformanceSummary {
   const endingCapital = equityCurve.length > 0 ? equityCurve[equityCurve.length - 1].equity : startingCapital;
+  const netPnl = endingCapital - startingCapital;
   const totalReturnPct = ((endingCapital - startingCapital) / startingCapital) * 100;
 
   const days = equityCurve.length;
@@ -89,6 +90,7 @@ export function computeSummary(
   return {
     startingCapital,
     endingCapital,
+    netPnl,
     totalReturnPct,
     cagrPct,
     maxDrawdownPct,

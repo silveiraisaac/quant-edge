@@ -4,8 +4,8 @@ import { monthLabel } from "@/lib/format";
 export function MonthlyReturnsTable({ data }: { data: MonthlyReturn[] }) {
   if (data.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-semibold text-slate-900">Monthly returns</h2>
+      <div className="qe-card p-5">
+        <h2 className="text-sm font-semibold text-slate-900">Monthly Returns</h2>
         <p className="mt-3 text-sm text-slate-400">Not enough data to compute monthly returns.</p>
       </div>
     );
@@ -16,8 +16,8 @@ export function MonthlyReturnsTable({ data }: { data: MonthlyReturn[] }) {
   for (const d of data) byYearMonth.set(`${d.year}-${d.month}`, d.returnPct);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <h2 className="mb-4 text-sm font-semibold text-slate-900">Monthly returns</h2>
+    <div className="qe-card p-5">
+      <h2 className="mb-4 text-sm font-semibold text-slate-900">Monthly Returns</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>

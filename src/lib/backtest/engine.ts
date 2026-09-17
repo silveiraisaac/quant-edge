@@ -82,6 +82,7 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
       trades.push({
         id: tradeId++,
         direction: "LONG",
+        symbol: settings.symbol,
         entryDate: position.entryDate,
         entryPrice: position.entryPrice,
         exitDate: bar.date,
@@ -89,6 +90,7 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
         quantity: position.quantity,
         pnl,
         pnlPct: (pnl / cost) * 100,
+        entryReason: "Strategy signal",
         reason: "SIGNAL_EXIT",
       });
       cash += proceeds;
@@ -112,6 +114,7 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
     trades.push({
       id: tradeId++,
       direction: "LONG",
+      symbol: settings.symbol,
       entryDate: position.entryDate,
       entryPrice: position.entryPrice,
       exitDate: lastBar.date,
@@ -119,6 +122,7 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
       quantity: position.quantity,
       pnl,
       pnlPct: (pnl / cost) * 100,
+      entryReason: "Strategy signal",
       reason: "END_OF_PERIOD",
     });
     cash += proceeds;
