@@ -1,6 +1,7 @@
 import { BacktestSettings } from "@/lib/types";
 import { ConfigSection, Field } from "./config-section";
 import { CurrencyInput } from "./currency-input";
+import { NumericInput } from "./numeric-input";
 
 interface Props {
   settings: BacktestSettings;
@@ -19,16 +20,11 @@ export function CapitalSection({ settings, onChange }: Props) {
           />
         </Field>
         <Field label="Position size (% of capital)">
-          <input
-            type="number"
+          <NumericInput
             min={1}
             max={100}
-            step={1}
             value={Math.round(settings.positionSizePct * 100)}
-            onChange={(e) =>
-              onChange({ ...settings, positionSizePct: Number(e.target.value) / 100 })
-            }
-            className="input"
+            onChange={(v) => onChange({ ...settings, positionSizePct: v / 100 })}
           />
         </Field>
       </div>

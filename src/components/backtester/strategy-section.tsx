@@ -1,6 +1,7 @@
 import { BacktestSettings, StrategyConfig } from "@/lib/types";
 import { STRATEGY_DEFINITIONS, getStrategyDefinition } from "@/lib/strategies";
 import { ConfigSection, Field } from "./config-section";
+import { NumericInput } from "./numeric-input";
 
 interface Props {
   settings: BacktestSettings;
@@ -41,23 +42,19 @@ export function StrategySection({ settings, onChange }: Props) {
       {strategy.type === "SMA_CROSSOVER" && (
         <div className="grid grid-cols-2 gap-3">
           <Field label="Fast period">
-            <input
-              type="number"
+            <NumericInput
               min={2}
               max={200}
               value={strategy.fastPeriod}
-              onChange={(e) => updateStrategy({ ...strategy, fastPeriod: Number(e.target.value) })}
-              className="input"
+              onChange={(v) => updateStrategy({ ...strategy, fastPeriod: v })}
             />
           </Field>
           <Field label="Slow period">
-            <input
-              type="number"
+            <NumericInput
               min={3}
               max={400}
               value={strategy.slowPeriod}
-              onChange={(e) => updateStrategy({ ...strategy, slowPeriod: Number(e.target.value) })}
-              className="input"
+              onChange={(v) => updateStrategy({ ...strategy, slowPeriod: v })}
             />
           </Field>
         </div>
@@ -66,33 +63,27 @@ export function StrategySection({ settings, onChange }: Props) {
       {strategy.type === "RSI_MEAN_REVERSION" && (
         <div className="grid grid-cols-3 gap-3">
           <Field label="RSI period">
-            <input
-              type="number"
+            <NumericInput
               min={2}
               max={100}
               value={strategy.period}
-              onChange={(e) => updateStrategy({ ...strategy, period: Number(e.target.value) })}
-              className="input"
+              onChange={(v) => updateStrategy({ ...strategy, period: v })}
             />
           </Field>
           <Field label="Oversold">
-            <input
-              type="number"
+            <NumericInput
               min={1}
               max={49}
               value={strategy.oversold}
-              onChange={(e) => updateStrategy({ ...strategy, oversold: Number(e.target.value) })}
-              className="input"
+              onChange={(v) => updateStrategy({ ...strategy, oversold: v })}
             />
           </Field>
           <Field label="Overbought">
-            <input
-              type="number"
+            <NumericInput
               min={51}
               max={99}
               value={strategy.overbought}
-              onChange={(e) => updateStrategy({ ...strategy, overbought: Number(e.target.value) })}
-              className="input"
+              onChange={(v) => updateStrategy({ ...strategy, overbought: v })}
             />
           </Field>
         </div>
