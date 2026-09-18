@@ -49,6 +49,12 @@ export default function HomePage() {
   async function handleRun() {
     setIsRunning(true);
     setError(null);
+    if (!Number.isFinite(settings.initialCapital) || settings.initialCapital <= 0) {
+      setError("Initial capital must be a valid number greater than zero.");
+      setResult(null);
+      setIsRunning(false);
+      return;
+    }
     try {
       const output = await runBacktest(settings);
       setResult(output);

@@ -127,4 +127,12 @@ export interface BacktestResult {
   drawdownCurve: DrawdownPoint[];
   monthlyReturns: MonthlyReturn[];
   summary: PerformanceSummary;
+  /**
+   * Set when the strategy generated at least one entry signal but every
+   * single one was skipped because the configured capital × position size
+   * couldn't afford even one whole unit at that bar's price. Lets the UI
+   * distinguish "strategy never triggered" from "capital too small for
+   * this instrument's price" instead of both looking like a silent zero.
+   */
+  insufficientCapitalWarning: boolean;
 }

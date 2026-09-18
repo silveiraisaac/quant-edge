@@ -1,5 +1,6 @@
 import { BacktestSettings } from "@/lib/types";
 import { ConfigSection, Field } from "./config-section";
+import { CurrencyInput } from "./currency-input";
 
 interface Props {
   settings: BacktestSettings;
@@ -11,13 +12,10 @@ export function CapitalSection({ settings, onChange }: Props) {
     <ConfigSection title="Capital & Position Sizing">
       <div className="grid grid-cols-2 gap-3">
         <Field label="Initial capital (₹)">
-          <input
-            type="number"
-            min={1000}
-            step={1000}
+          <CurrencyInput
             value={settings.initialCapital}
-            onChange={(e) => onChange({ ...settings, initialCapital: Number(e.target.value) })}
-            className="input"
+            onChange={(v) => onChange({ ...settings, initialCapital: v })}
+            min={1000}
           />
         </Field>
         <Field label="Position size (% of capital)">

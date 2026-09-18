@@ -13,10 +13,18 @@ export async function runBacktest(settings: BacktestSettings): Promise<BacktestR
     );
   }
 
-  const { trades, equityCurve } = runBacktestEngine(bars, settings);
+  const { trades, equityCurve, entrySignalsGenerated, entriesSkippedInsufficientCapital } =
+    runBacktestEngine(bars, settings);
   const drawdownCurve = computeDrawdownCurve(equityCurve);
   const monthlyReturns = computeMonthlyReturns(equityCurve);
   const summary = computeSummary(settings.initialCapital, equityCurve, drawdownCurve, trades);
+
+  // Only warn when every single entry signal was skipped for this reason —
+  // a strategy that never signals at all is a different (unremarkable) case.
+  const insufficientCapitalWarning =
+    trades.length === 0 &&
+    entrySignalsGenerated > 0 &&
+    entriesSkippedInsufficientCapital === entrySignalsGenerated;
 
   return {
     settings,
@@ -27,5 +35,6 @@ export async function runBacktest(settings: BacktestSettings): Promise<BacktestR
     drawdownCurve,
     monthlyReturns,
     summary,
+    insufficientCapitalWarning,
   };
 }

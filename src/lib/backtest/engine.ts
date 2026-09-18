@@ -50,6 +50,16 @@ function computeSignals(bars: OHLCVBar[], strategy: StrategyConfig): Signal[] {
 export interface EngineOutput {
   trades: Trade[];
   equityCurve: EquityPoint[];
+  /**
+   * Diagnostics for the "zero trades" case. When entrySignalsGenerated > 0
+   * but trades.length === 0, entriesSkippedInsufficientCapital tells the
+   * caller *why*: every entry signal was skipped because the configured
+   * capital × position size couldn't afford even one whole unit at that
+   * bar's price. This is surfaced to the UI instead of silently returning
+   * an unexplained empty result.
+   */
+  entrySignalsGenerated: number;
+  entriesSkippedInsufficientCapital: number;
 }
 
 export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings): EngineOutput {
@@ -62,6 +72,8 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
   let position: { quantity: number; entryPrice: number; entryDate: string } | null = null;
   let tradeId = 1;
   let pendingAction: Signal = null;
+  let entrySignalsGenerated = 0;
+  let entriesSkippedInsufficientCapital = 0;
 
   for (let i = 0; i < bars.length; i++) {
     const bar = bars[i];
@@ -69,11 +81,14 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
     // Execute any signal that was raised on the previous bar's close, at
     // this bar's open — this is what keeps the engine free of lookahead.
     if (pendingAction === "ENTER" && !position) {
+      entrySignalsGenerated++;
       const allocation = cash * settings.positionSizePct;
       const quantity = Math.floor(allocation / bar.open);
       if (quantity > 0) {
         position = { quantity, entryPrice: bar.open, entryDate: bar.date };
         cash -= quantity * bar.open;
+      } else {
+        entriesSkippedInsufficientCapital++;
       }
     } else if (pendingAction === "EXIT" && position) {
       const proceeds = position.quantity * bar.open;
@@ -131,5 +146,5 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
     }
   }
 
-  return { trades, equityCurve };
+  return { trades, equityCurve, entrySignalsGenerated, entriesSkippedInsufficientCapital };
 }

@@ -1,5 +1,6 @@
 import { BacktestResult } from "@/lib/types";
 import { DemoDataBanner } from "@/components/demo-data-banner";
+import { InsufficientCapitalWarning } from "@/components/insufficient-capital-warning";
 import { SummaryStatsCards } from "@/components/summary-stats-cards";
 import { EquityCurveChart } from "@/components/equity-curve-chart";
 import { DrawdownChart } from "@/components/drawdown-chart";
@@ -10,6 +11,7 @@ export function ResultsDashboard({ result }: { result: BacktestResult }) {
   return (
     <div className="space-y-5">
       {result.isSynthetic && <DemoDataBanner />}
+      {result.insufficientCapitalWarning && <InsufficientCapitalWarning result={result} />}
 
       <SummaryStatsCards summary={result.summary} />
       <EquityCurveChart data={result.equityCurve} />
