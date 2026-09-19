@@ -6,6 +6,7 @@ import { EquityCurveChart } from "@/components/equity-curve-chart";
 import { DrawdownChart } from "@/components/drawdown-chart";
 import { MonthlyReturnsTable } from "@/components/monthly-returns-table";
 import { TradeLogTable } from "@/components/trade-log-table";
+import { ReportDetails } from './report-details';
 
 export function ResultsDashboard({ result }: { result: BacktestResult }) {
   return (
@@ -18,6 +19,7 @@ export function ResultsDashboard({ result }: { result: BacktestResult }) {
       <DrawdownChart data={result.drawdownCurve} />
       <MonthlyReturnsTable data={result.monthlyReturns} />
       <TradeLogTable trades={result.trades} />
+      <ReportDetails result={result} />
     </div>
   );
 }

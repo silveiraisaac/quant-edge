@@ -169,19 +169,19 @@ export interface MonthlyReturn {
   returnPct: number;
 }
 
-export interface PerformanceSummary {
+export interface PerformanceSummary extends ReturnType<typeof import("./backtest/analytics").advancedAnalytics> {
   startingCapital: number;
   endingCapital: number;
   netPnl: number;
   totalReturnPct: number;
-  cagrPct: number;
+  cagrPct: number | null;
   maxDrawdownPct: number;
   totalTrades: number;
-  winRatePct: number;
+  winRatePct: number | null;
   avgWinPct: number;
   avgLossPct: number;
-  profitFactor: number;
-  sharpeRatio: number;
+  profitFactor: number | null;
+  sharpeRatio: number | null;
 }
 
 export interface BacktestResult {

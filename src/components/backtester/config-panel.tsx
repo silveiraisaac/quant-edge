@@ -29,6 +29,7 @@ export function ConfigPanel({ symbols, settings, onChange, onRun, isRunning }: P
       <StrategySection settings={settings} onChange={onChange} />
       <RiskManagementSection settings={settings} onChange={onChange} />
       <CostsSection settings={settings} onChange={onChange} />
+      <label className="block text-xs text-slate-600">Annual risk-free rate (%)<input className="input mt-1" type="number" min={-50} max={100} step="0.1" value={settings.riskFreeRatePct ?? 0} onChange={e=>onChange({...settings,riskFreeRatePct:Number(e.target.value)})} /></label>
 
       <button
         onClick={onRun}

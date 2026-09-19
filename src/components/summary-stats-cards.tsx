@@ -17,6 +17,8 @@ export function SummaryStatsCards({ summary }: { summary: PerformanceSummary }) 
 
   const riskCards: Card[] = [
     { label: "Max Drawdown", value: formatPct(summary.maxDrawdownPct), accent: "text-red-600" },
+    { label: "Sortino Ratio", value: formatNumber(summary.sortinoRatio, 2), accent: "text-slate-900" },
+    { label: "Volatility", value: formatPct(summary.volatilityPct), accent: "text-slate-900" },
     { label: "Sharpe Ratio", value: formatNumber(summary.sharpeRatio, 2), accent: "text-slate-900" },
   ];
 
@@ -25,7 +27,7 @@ export function SummaryStatsCards({ summary }: { summary: PerformanceSummary }) 
     { label: "Win Rate", value: `${formatNumber(summary.winRatePct, 1)}%`, accent: "text-slate-900" },
     {
       label: "Profit Factor",
-      value: Number.isFinite(summary.profitFactor) ? formatNumber(summary.profitFactor, 2) : "∞",
+      value: formatNumber(summary.profitFactor, 2),
       accent: "text-slate-900",
     },
     { label: "Average Win", value: formatPct(summary.avgWinPct), accent: "text-emerald-600" },
@@ -41,7 +43,8 @@ export function SummaryStatsCards({ summary }: { summary: PerformanceSummary }) 
   );
 }
 
-function pnlColor(value: number): string {
+function pnlColor(value: number | null): string {
+  if(value === null) return "text-slate-500";
   return value >= 0 ? "text-emerald-600" : "text-red-600";
 }
 

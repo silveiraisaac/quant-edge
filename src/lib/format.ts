@@ -1,4 +1,5 @@
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number | null): string {
+  if(value === null || !Number.isFinite(value)) return "N/A";
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -6,12 +7,14 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function formatPct(value: number, decimals = 2): string {
+export function formatPct(value: number | null, decimals = 2): string {
+  if(value === null || !Number.isFinite(value)) return "N/A";
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(decimals)}%`;
 }
 
-export function formatNumber(value: number, decimals = 2): string {
+export function formatNumber(value: number | null, decimals = 2): string {
+  if(value === null || !Number.isFinite(value)) return "N/A";
   return new Intl.NumberFormat("en-IN", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
