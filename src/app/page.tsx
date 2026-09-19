@@ -21,6 +21,7 @@ import { DemoDataBanner } from "@/components/demo-data-banner";
 import { ComparisonPanel } from '@/components/comparison-panel';
 import { ResultActions } from '@/components/result-actions';
 import { ComparisonRun } from '@/lib/comparison';
+import { SavedWorkspace } from '@/components/saved-workspace';
 
 function defaultDateRange() {
 
@@ -293,6 +294,7 @@ export default function HomePage() {
 
             {result && <><ResultActions result={result} disabled={comparisons.length>=4} onCompare={()=>setComparisons(prev=>prev.length>=4?prev:[...prev,{id:crypto.randomUUID(),name:`${result.settings.strategy.type} (${prev.length+1})`,result}])} /><ResultsDashboard result={result} /></>}
             <div className="mt-5"><ComparisonPanel runs={comparisons} onRemove={id=>setComparisons(prev=>prev.filter(r=>r.id!==id))} /></div>
+            <div className="mt-5"><SavedWorkspace result={result} onOpen={s=>{setSettings(s);setResult(null);setError(null);}} /></div>
 
           </div>
 
