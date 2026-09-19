@@ -52,5 +52,5 @@ export function validateSettings(input: unknown): BacktestSettings {
     }
   }
   // Only known settings are retained; client user IDs/plan flags never propagate.
-  return {providerId:s.providerId,symbol:s.symbol,startDate:s.startDate,endDate:s.endDate,initialCapital:s.initialCapital,strategy:s.strategy,riskManagement:r,positionSizing:p,portfolio:limits,costs:s.costs,exchange:s.exchange??'NSE',timeframe:'day',riskFreeRatePct:s.riskFreeRatePct??0} as BacktestSettings;
+  return {providerId:s.providerId,symbol:s.symbol,startDate:s.startDate,endDate:s.endDate,initialCapital:s.initialCapital,strategy:s.strategy,riskManagement:r,positionSizing:p,portfolio:limits,costs:s.costs,exchange:s.exchange??'NSE',timeframe:'day',riskFreeRatePct:s.riskFreeRatePct??0} as unknown as BacktestSettings;
 }
