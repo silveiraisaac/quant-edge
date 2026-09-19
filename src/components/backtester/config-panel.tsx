@@ -23,7 +23,7 @@ export function ConfigPanel({ symbols, settings, onChange, onRun, isRunning }: P
       <MarketSection symbols={symbols} settings={settings} onChange={onChange} />
       <CapitalSection settings={settings} onChange={onChange} />
       <StrategySection settings={settings} onChange={onChange} />
-      <RiskManagementSection />
+      <RiskManagementSection settings={settings} onChange={onChange} />
       <CostsSection />
 
       <button

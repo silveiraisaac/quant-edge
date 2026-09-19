@@ -6,6 +6,26 @@ function holdingDays(entryDate: string, exitDate: string): number {
   return Math.round(ms / 86_400_000);
 }
 
+const EXIT_REASON_LABELS: Record<Trade["reason"], string> = {
+  STRATEGY_EXIT: "Strategy Exit",
+  STOP_LOSS: "Stop Loss",
+  TARGET: "Target",
+  TRAILING_STOP: "Trailing Stop",
+  PERIOD_END: "Period End",
+};
+
+const EXIT_REASON_STYLES: Record<Trade["reason"], string> = {
+  STRATEGY_EXIT: "text-slate-500",
+  STOP_LOSS: "text-red-600 font-medium",
+  TARGET: "text-emerald-600 font-medium",
+  TRAILING_STOP: "text-amber-600 font-medium",
+  PERIOD_END: "text-slate-400",
+};
+
+function exitReasonLabel(reason: Trade["reason"]): string {
+  return EXIT_REASON_LABELS[reason];
+}
+
 export function TradeLogTable({ trades }: { trades: Trade[] }) {
   return (
     <div className="qe-card p-5">
@@ -83,8 +103,8 @@ export function TradeLogTable({ trades }: { trades: Trade[] }) {
                       {holdingDays(t.entryDate, t.exitDate)}d
                     </td>
                     <td className="px-2 py-2 text-slate-400">{t.entryReason}</td>
-                    <td className="px-2 py-2 text-slate-400">
-                      {t.reason === "SIGNAL_EXIT" ? "Signal exit" : "End of period"}
+                    <td className={`px-2 py-2 ${EXIT_REASON_STYLES[t.reason]}`}>
+                      {exitReasonLabel(t.reason)}
                     </td>
                   </tr>
                 );

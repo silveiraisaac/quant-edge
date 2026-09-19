@@ -28,6 +28,17 @@ const DEFAULT_SETTINGS: BacktestSettings = {
   initialCapital: 1_000_000,
   positionSizePct: 0.9,
   strategy: { type: "SMA_CROSSOVER", fastPeriod: 20, slowPeriod: 50 },
+  // All disabled by default — existing backtests must be unaffected until
+  // the user explicitly opts in. Percentages have sensible defaults ready
+  // to go the moment a control is switched on.
+  riskManagement: {
+    stopLossEnabled: false,
+    stopLossPct: 2,
+    targetEnabled: false,
+    targetPct: 5,
+    trailingStopEnabled: false,
+    trailingStopPct: 3,
+  },
 };
 
 export default function HomePage() {

@@ -58,6 +58,22 @@ export interface BacktestSettings {
   // Fraction of capital risked per trade (position sizing kept simple for this stage).
   positionSizePct: number;
   strategy: StrategyConfig;
+  riskManagement: RiskManagementConfig;
+}
+
+/**
+ * All three controls default to disabled. When every control is disabled,
+ * the engine's behavior must be identical to before this feature existed —
+ * this is what makes that guarantee possible, since nothing here changes
+ * the exit path unless a control is explicitly turned on.
+ */
+export interface RiskManagementConfig {
+  stopLossEnabled: boolean;
+  stopLossPct: number;
+  targetEnabled: boolean;
+  targetPct: number;
+  trailingStopEnabled: boolean;
+  trailingStopPct: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -77,7 +93,13 @@ export interface Trade {
   pnlPct: number;
   /** All entries in this engine are strategy-signal driven; kept as an explicit field so future entry types (e.g. manual) can be distinguished. */
   entryReason: "Strategy signal";
-  reason: "SIGNAL_EXIT" | "END_OF_PERIOD";
+  /**
+   * The actual reason this trade closed. STOP_LOSS/TARGET/TRAILING_STOP are
+   * only ever produced when the corresponding control is enabled in
+   * settings.riskManagement — a risk-based reason is never recorded for a
+   * plain strategy exit, and vice versa.
+   */
+  reason: "STRATEGY_EXIT" | "PERIOD_END" | "STOP_LOSS" | "TARGET" | "TRAILING_STOP";
   /**
    * Transaction charges (brokerage/slippage/taxes) for this trade.
    * Undefined means the cost model has not been implemented yet — this is

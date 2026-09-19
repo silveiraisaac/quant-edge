@@ -10,6 +10,7 @@ interface Props {
   /** How many decimal places are allowed while typing. 0 = integers only. */
   decimals?: number;
   allowNegative?: boolean;
+  disabled?: boolean;
 }
 
 /**
@@ -29,6 +30,7 @@ export function NumericInput({
   max,
   decimals = 0,
   allowNegative = false,
+  disabled = false,
 }: Props) {
   // null = not editing; display the committed `value` prop.
   // string = user is actively typing; this is the source of truth.
@@ -88,6 +90,7 @@ export function NumericInput({
       onFocus={handleFocus}
       onChange={handleChange}
       onBlur={handleBlur}
+      disabled={disabled}
       className="input"
     />
   );

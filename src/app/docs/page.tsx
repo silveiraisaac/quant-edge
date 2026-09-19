@@ -35,14 +35,32 @@ export default function DocsPage() {
         </p>
       </Section>
 
+      <Section title="Risk management: stop loss, target, and trailing stop">
+        <p>
+          Stop loss, target, and trailing stop are real, optional exit controls, each disabled by
+          default. Percentages are relative to entry price. Stop/target checks use the
+          bar&apos;s own low/high, not just its close, so a level touched intrabar exits at that
+          level — unless the market gapped past it, in which case the trade exits at the
+          available open instead of the unreachable stop/target price.
+        </p>
+        <p>
+          If a single bar touches both the stop and the target, there is no way to know from
+          OHLC data which happened first — Quant Edge conservatively assumes the stop was hit
+          first. The trailing stop only ever moves in the trade&apos;s favor: each bar&apos;s
+          exit is decided using the trailing level as it stood coming into that bar, and only
+          afterward is the level raised using that bar&apos;s high, so it can never benefit from
+          information the position didn&apos;t yet have.
+        </p>
+      </Section>
+
       <Section title="What isn't modeled yet">
         <p>
           The current results assume <strong>zero transaction costs</strong> — no brokerage,
-          slippage, or taxes — and no stop-loss, target, or trailing-stop exits. The
-          configuration panel shows placeholders for these under &ldquo;Risk Management&rdquo;
-          and &ldquo;Costs&rdquo; so the intended structure is visible, but they do not yet affect
-          results. When they&apos;re implemented, they&apos;ll be applied transparently to the
-          calculation rather than estimated after the fact.
+          slippage, or taxes. The configuration panel shows a placeholder for a max drawdown
+          limit under &ldquo;Risk Management&rdquo;, and placeholders under &ldquo;Costs&rdquo;,
+          so the intended structure is visible, but they do not yet affect results. When
+          they&apos;re implemented, they&apos;ll be applied transparently to the calculation
+          rather than estimated after the fact.
         </p>
       </Section>
 
