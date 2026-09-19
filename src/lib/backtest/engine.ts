@@ -1,5 +1,6 @@
-import { BacktestSettings, EquityPoint, OHLCVBar, StrategyConfig, Trade } from "@/lib/types";
+import { BacktestSettings, EquityPoint, OHLCVBar, PositionSizingMode, StrategyConfig, Trade } from "@/lib/types";
 import { relativeStrengthIndex, simpleMovingAverage } from "@/lib/backtest/indicators";
+import { calculateAvailableAllocationCapacity, calculatePositionQuantity } from "@/lib/backtest/position-sizing";
 
 type Signal = "ENTER" | "EXIT" | null;
 
@@ -51,15 +52,20 @@ export interface EngineOutput {
   trades: Trade[];
   equityCurve: EquityPoint[];
   /**
-   * Diagnostics for the "zero trades" case. When entrySignalsGenerated > 0
-   * but trades.length === 0, entriesSkippedInsufficientCapital tells the
-   * caller *why*: every entry signal was skipped because the configured
-   * capital × position size couldn't afford even one whole unit at that
-   * bar's price. This is surfaced to the UI instead of silently returning
-   * an unexplained empty result.
+   * Diagnostics for the "zero trades" case. entrySignalsGenerated counts
+   * every ENTER signal where a slot was actually available (i.e. NOT
+   * blocked by maxConcurrentPositions) and sizing was attempted.
+   * entriesSkippedInsufficientCapital counts how many of those were
+   * rejected by calculatePositionQuantity — insufficient cash, insufficient
+   * allocation headroom, or (for RISK_PERCENT mode) no active stop loss.
+   * This is broader than "capital" in the literal sense now that sizing
+   * has three modes, but the field name is kept for API stability; the
+   * UI's warning message already speaks generically about sizing/capacity.
    */
   entrySignalsGenerated: number;
   entriesSkippedInsufficientCapital: number;
+  /** ENTER signals that arrived while already at maxConcurrentPositions — a distinct, non-capital reason for a skipped entry. */
+  entriesSkippedMaxPositions: number;
 }
 
 export interface OpenPosition {
@@ -79,6 +85,10 @@ export interface OpenPosition {
   highestFavorablePrice: number | null;
   /** Current trailing stop price, derived from highestFavorablePrice. Null when trailing stop is disabled. */
   trailingStopPrice: number | null;
+  /** ₹ committed to this lot at entry (quantity × entryPrice) — carried onto the Trade at close. */
+  positionSizeValue: number;
+  /** Which sizing mode produced this lot's quantity — carried onto the Trade at close. */
+  positionSizingMode: PositionSizingMode;
 }
 
 export interface ExitResult {
@@ -167,127 +177,184 @@ export function updateTrailingStopForNextBar(position: OpenPosition, bar: OHLCVB
   position.trailingStopPrice = position.highestFavorablePrice * (1 - trailingStopPct / 100);
 }
 
+/** cash + market value (current bar's close) of every open lot. */
+export function computePortfolioEquity(cash: number, positions: OpenPosition[], markPrice: number): number {
+  const marketValue = positions.reduce((sum, p) => sum + p.quantity * markPrice, 0);
+  return cash + marketValue;
+}
+
+/** Cost basis (quantity × entryPrice) of every open lot — see calculateAvailableAllocationCapacity for why this, not market value, is used for the allocation cap. */
+export function computeAllocatedCostBasis(positions: OpenPosition[]): number {
+  return positions.reduce((sum, p) => sum + p.quantity * p.entryPrice, 0);
+}
+
 export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings): EngineOutput {
   const signals = computeSignals(bars, settings.strategy);
   const risk = settings.riskManagement;
+  const sizing = settings.positionSizing;
+  const portfolioConfig = settings.portfolio;
 
   const trades: Trade[] = [];
   const equityCurve: EquityPoint[] = [];
 
   let cash = settings.initialCapital;
-  let position: OpenPosition | null = null;
+  // Multiple simultaneously open lots of the SAME symbol (pyramiding),
+  // capped by portfolio.maxConcurrentPositions. This generalizes naturally
+  // to a future multi-symbol engine (positions would simply carry their
+  // own symbol), without changing anything about how each lot's own
+  // risk-exit mechanics work — those remain entirely per-position.
+  let positions: OpenPosition[] = [];
   let tradeId = 1;
   let pendingAction: Signal = null;
   let entrySignalsGenerated = 0;
   let entriesSkippedInsufficientCapital = 0;
+  let entriesSkippedMaxPositions = 0;
+  // Equity as of the END of the previous bar's processing. Used to size a
+  // NEW entry's allocation cap — never today's still-unknown mark, which
+  // would be lookahead. Same "use yesterday's known value" pattern as the
+  // trailing-stop update in Phase 3.1.
+  let portfolioEquityAsOfLastClose = settings.initialCapital;
 
-  function closePosition(price: number, reason: Trade["reason"], exitDate: string) {
-    if (!position) return;
-    const proceeds = position.quantity * price;
-    const cost = position.quantity * position.entryPrice;
+  function closePosition(pos: OpenPosition, price: number, reason: Trade["reason"], exitDate: string) {
+    const proceeds = pos.quantity * price;
+    const cost = pos.quantity * pos.entryPrice;
     const pnl = proceeds - cost;
     trades.push({
       id: tradeId++,
       direction: "LONG",
       symbol: settings.symbol,
-      entryDate: position.entryDate,
-      entryPrice: position.entryPrice,
+      entryDate: pos.entryDate,
+      entryPrice: pos.entryPrice,
       exitDate,
       exitPrice: price,
-      quantity: position.quantity,
+      quantity: pos.quantity,
       pnl,
       pnlPct: (pnl / cost) * 100,
       entryReason: "Strategy signal",
       reason,
+      positionSizeValue: pos.positionSizeValue,
+      positionSizingMode: pos.positionSizingMode,
     });
     cash += proceeds;
-    position = null;
+    positions = positions.filter((p) => p !== pos);
   }
 
   for (let i = 0; i < bars.length; i++) {
     const bar = bars[i];
-    // Snapshot at the START of this bar — a position that was already open
-    // going into this bar will not re-enter on this same bar even if a
-    // risk exit closes it mid-bar. This preserves the original one-trade-
-    // per-signal-transition timing exactly, rather than inventing new
-    // same-bar re-entry behavior.
-    const positionOpenAtStartOfBar = position !== null;
+    // Snapshot at the START of this bar — positions already open going
+    // into this bar will not free up a slot for a new entry on this same
+    // bar even if a risk exit closes them mid-bar. This generalizes the
+    // original single-position "no same-bar re-entry" rule from Phase 3.1
+    // to the multi-position case exactly.
+    const openCountAtStartOfBar = positions.length;
 
-    if (position) {
-      // 1) Gap check at the open — knowable the instant the bar opens.
-      const gapExit = checkGapExit(position, bar);
+    // 1) Gap check + strategy EXIT, evaluated per-position (each lot has
+    // its own entry price and therefore its own stop/target levels). A
+    // strategy EXIT signal is not lot-specific — the strategy considers
+    // itself flat once it signals exit, so it closes every currently open
+    // lot, each still checked for its own gap first.
+    for (const pos of [...positions]) {
+      const gapExit = checkGapExit(pos, bar);
       if (gapExit) {
-        closePosition(gapExit.price, gapExit.reason, bar.date);
+        closePosition(pos, gapExit.price, gapExit.reason, bar.date);
       } else if (pendingAction === "EXIT") {
-        // 2) No gap: the strategy's own exit signal executes at this
-        // bar's open, exactly as before this feature existed.
-        closePosition(bar.open, "STRATEGY_EXIT", bar.date);
+        closePosition(pos, bar.open, "STRATEGY_EXIT", bar.date);
       }
     }
 
-    if (pendingAction === "ENTER" && !positionOpenAtStartOfBar && !position) {
-      entrySignalsGenerated++;
-      const allocation = cash * settings.positionSizePct;
-      const quantity = Math.floor(allocation / bar.open);
-      if (quantity > 0) {
+    if (pendingAction === "ENTER" && openCountAtStartOfBar < portfolioConfig.maxConcurrentPositions) {
+      if (positions.length < portfolioConfig.maxConcurrentPositions) {
+        entrySignalsGenerated++;
         const entryPrice = bar.open;
-        const stopLossPrice = risk.stopLossEnabled
+        const initialStopLossPrice = risk.stopLossEnabled
           ? entryPrice * (1 - risk.stopLossPct / 100)
           : null;
-        const targetPrice = risk.targetEnabled ? entryPrice * (1 + risk.targetPct / 100) : null;
-        const highestFavorablePrice = risk.trailingStopEnabled ? entryPrice : null;
-        const trailingStopPrice = risk.trailingStopEnabled
-          ? entryPrice * (1 - risk.trailingStopPct / 100)
-          : null;
-        position = {
-          quantity,
+
+        const allocatedCostBasis = computeAllocatedCostBasis(positions);
+        const maxAllocationCapacity = calculateAvailableAllocationCapacity(
+          portfolioEquityAsOfLastClose,
+          portfolioConfig.maxCapitalAllocationPct,
+          allocatedCostBasis,
+        );
+
+        const sizingResult = calculatePositionQuantity({
+          config: sizing,
+          availableCash: cash,
           entryPrice,
-          entryDate: bar.date,
-          stopLossPrice,
-          targetPrice,
-          highestFavorablePrice,
-          trailingStopPrice,
-        };
-        cash -= quantity * entryPrice;
-      } else {
-        entriesSkippedInsufficientCapital++;
+          initialStopLossPrice,
+          maxAllocationCapacity,
+        });
+
+        if (!sizingResult.rejected && sizingResult.quantity > 0) {
+          const targetPrice = risk.targetEnabled ? entryPrice * (1 + risk.targetPct / 100) : null;
+          const highestFavorablePrice = risk.trailingStopEnabled ? entryPrice : null;
+          const trailingStopPrice = risk.trailingStopEnabled
+            ? entryPrice * (1 - risk.trailingStopPct / 100)
+            : null;
+          positions.push({
+            quantity: sizingResult.quantity,
+            entryPrice,
+            entryDate: bar.date,
+            stopLossPrice: initialStopLossPrice,
+            targetPrice,
+            highestFavorablePrice,
+            trailingStopPrice,
+            positionSizeValue: sizingResult.positionValue,
+            positionSizingMode: sizing.mode,
+          });
+          cash -= sizingResult.positionValue;
+        } else {
+          entriesSkippedInsufficientCapital++;
+        }
       }
+    } else if (pendingAction === "ENTER") {
+      entriesSkippedMaxPositions++;
     }
 
-    // 3) Intrabar check — for a position still open at this point, whether
-    // freshly entered this bar or carried in from an earlier bar. Uses
-    // ONLY this bar's own low/high, evaluated against stop/target/trailing
-    // levels as they stood *before* this bar's high is applied below —
-    // never using this bar's high to retroactively improve the trailing
-    // stop before deciding whether this same bar hit it.
-    if (position) {
-      const intrabarExit = checkIntrabarExit(position, bar);
+    // 2) Intrabar check — for every position still open at this point,
+    // whether freshly entered this bar or carried in from an earlier bar.
+    // Uses ONLY this bar's own low/high, evaluated against stop/target/
+    // trailing levels as they stood *before* this bar's high is applied
+    // below — never using this bar's high to retroactively improve the
+    // trailing stop before deciding whether this same bar hit it.
+    for (const pos of [...positions]) {
+      const intrabarExit = checkIntrabarExit(pos, bar);
       if (intrabarExit) {
-        closePosition(intrabarExit.price, intrabarExit.reason, bar.date);
-      } else if (position.highestFavorablePrice !== null) {
-        // 4) Only now, after this bar's exit decision is final, raise the
+        closePosition(pos, intrabarExit.price, intrabarExit.reason, bar.date);
+      } else if (pos.highestFavorablePrice !== null) {
+        // 3) Only now, after this bar's exit decision is final, raise the
         // trailing stop using this bar's high — takes effect from the
-        // NEXT bar onward. Can only move up, per the spec.
-        updateTrailingStopForNextBar(position, bar, risk.trailingStopPct);
+        // NEXT bar onward. Can only move up, per Phase 3.1.
+        updateTrailingStopForNextBar(pos, bar, risk.trailingStopPct);
       }
     }
 
     pendingAction = signals[i];
 
-    // Mark-to-market at this bar's close for the equity curve.
-    const markToMarket = position ? position.quantity * bar.close : 0;
-    equityCurve.push({ date: bar.date, equity: cash + markToMarket });
+    // Mark-to-market at this bar's close for the equity curve, and record
+    // it as "as of last close" for sizing decisions on the NEXT bar.
+    const equity = computePortfolioEquity(cash, positions, bar.close);
+    equityCurve.push({ date: bar.date, equity });
+    portfolioEquityAsOfLastClose = equity;
   }
 
-  // Close any still-open position at the final bar's close so the backtest
-  // always ends fully in cash and every trade is accounted for.
-  if (position && bars.length > 0) {
+  // Close any still-open positions at the final bar's close so the
+  // backtest always ends fully in cash and every trade is accounted for.
+  if (positions.length > 0 && bars.length > 0) {
     const lastBar = bars[bars.length - 1];
-    closePosition(lastBar.close, "PERIOD_END", lastBar.date);
+    for (const pos of [...positions]) {
+      closePosition(pos, lastBar.close, "PERIOD_END", lastBar.date);
+    }
     if (equityCurve.length > 0) {
       equityCurve[equityCurve.length - 1] = { date: lastBar.date, equity: cash };
     }
   }
 
-  return { trades, equityCurve, entrySignalsGenerated, entriesSkippedInsufficientCapital };
+  return {
+    trades,
+    equityCurve,
+    entrySignalsGenerated,
+    entriesSkippedInsufficientCapital,
+    entriesSkippedMaxPositions,
+  };
 }

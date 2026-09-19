@@ -55,10 +55,10 @@ export interface BacktestSettings {
   startDate: string;
   endDate: string;
   initialCapital: number;
-  // Fraction of capital risked per trade (position sizing kept simple for this stage).
-  positionSizePct: number;
   strategy: StrategyConfig;
   riskManagement: RiskManagementConfig;
+  positionSizing: PositionSizingConfig;
+  portfolio: PortfolioConfig;
 }
 
 /**
@@ -74,6 +74,29 @@ export interface RiskManagementConfig {
   targetPct: number;
   trailingStopEnabled: boolean;
   trailingStopPct: number;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Position sizing & portfolio constraints (Phase 3.2)                       */
+/* -------------------------------------------------------------------------- */
+
+export type PositionSizingMode = "CAPITAL_PERCENT" | "FIXED_QUANTITY" | "RISK_PERCENT";
+
+export interface PositionSizingConfig {
+  mode: PositionSizingMode;
+  /** Used when mode === "CAPITAL_PERCENT". This is what settings.positionSizePct used to be, generalized into one of three sizing modes. */
+  capitalPercent: number;
+  /** Used when mode === "FIXED_QUANTITY". Whole units. */
+  fixedQuantity: number;
+  /** Used when mode === "RISK_PERCENT". Requires riskManagement.stopLossEnabled — see calculatePositionQuantity. */
+  riskPercent: number;
+}
+
+export interface PortfolioConfig {
+  /** How many simultaneously open lots are allowed. 1 preserves the original one-position-at-a-time behavior exactly. */
+  maxConcurrentPositions: number;
+  /** Ceiling on total capital (cost basis) tied up in open positions at once, as a % of portfolio equity. 100 = unrestricted. */
+  maxCapitalAllocationPct: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -107,6 +130,10 @@ export interface Trade {
    * apart from "modeled and zero".
    */
   charges?: number;
+  /** Position value at entry (quantity × entryPrice) — the actual ₹ committed to this lot. */
+  positionSizeValue: number;
+  /** Which sizing mode produced this trade's quantity. */
+  positionSizingMode: PositionSizingMode;
 }
 
 export interface EquityPoint {

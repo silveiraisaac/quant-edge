@@ -3,6 +3,8 @@
 import { BacktestSettings, SymbolInfo } from "@/lib/types";
 import { MarketSection } from "./market-section";
 import { CapitalSection } from "./capital-section";
+import { PositionSizingSection } from "./position-sizing-section";
+import { PortfolioConstraintsSection } from "./portfolio-constraints-section";
 import { StrategySection } from "./strategy-section";
 import { RiskManagementSection } from "./risk-section";
 import { CostsSection } from "./costs-section";
@@ -22,6 +24,8 @@ export function ConfigPanel({ symbols, settings, onChange, onRun, isRunning }: P
 
       <MarketSection symbols={symbols} settings={settings} onChange={onChange} />
       <CapitalSection settings={settings} onChange={onChange} />
+      <PositionSizingSection settings={settings} onChange={onChange} />
+      <PortfolioConstraintsSection settings={settings} onChange={onChange} />
       <StrategySection settings={settings} onChange={onChange} />
       <RiskManagementSection settings={settings} onChange={onChange} />
       <CostsSection />

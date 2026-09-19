@@ -1,10 +1,16 @@
 import { BacktestResult } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
 
+const MODE_DESCRIPTIONS: Record<string, string> = {
+  CAPITAL_PERCENT: "the configured capital % per trade",
+  FIXED_QUANTITY: "the configured fixed quantity",
+  RISK_PERCENT: "the configured risk % per trade",
+};
+
 export function InsufficientCapitalWarning({ result }: { result: BacktestResult }) {
   const prices = result.bars.map((b) => b.open);
   const cheapestPrice = prices.length > 0 ? Math.min(...prices) : 0;
-  const allocation = result.settings.initialCapital * result.settings.positionSizePct;
+  const modeDescription = MODE_DESCRIPTIONS[result.settings.positionSizing.mode] ?? "the configured sizing";
 
   return (
     <div className="flex items-start gap-3 rounded-lg border border-orange-300 bg-orange-50 px-4 py-3">
@@ -17,12 +23,13 @@ export function InsufficientCapitalWarning({ result }: { result: BacktestResult 
       </svg>
       <p className="text-sm text-orange-900">
         <span className="font-semibold">No trades were possible with this configuration.</span>{" "}
-        The strategy generated entry signals, but {formatCurrency(allocation)} (
-        {Math.round(result.settings.positionSizePct * 100)}% of {formatCurrency(result.settings.initialCapital)}
-        ) can&apos;t buy even one unit of {result.settings.symbol} — the lowest price in this
-        period was {formatCurrency(cheapestPrice)}. This isn&apos;t a bug: whole-share position
-        sizing with no leverage genuinely can&apos;t open a position here. Try a larger capital, a
-        higher position size %, or a lower-priced instrument.
+        The strategy generated entry signals, but {modeDescription} — combined with{" "}
+        {formatCurrency(result.settings.initialCapital)} starting capital, position sizing,
+        portfolio allocation, and available cash — couldn&apos;t buy even one unit of{" "}
+        {result.settings.symbol}. The lowest price in this period was{" "}
+        {formatCurrency(cheapestPrice)}. This isn&apos;t a bug: whole-share position sizing with
+        no leverage genuinely can&apos;t open a position here. Try a larger capital, a different
+        sizing mode or value, a higher max allocation %, or a lower-priced instrument.
       </p>
     </div>
   );

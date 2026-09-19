@@ -26,7 +26,6 @@ const DEFAULT_SETTINGS: BacktestSettings = {
   startDate,
   endDate,
   initialCapital: 1_000_000,
-  positionSizePct: 0.9,
   strategy: { type: "SMA_CROSSOVER", fastPeriod: 20, slowPeriod: 50 },
   // All disabled by default — existing backtests must be unaffected until
   // the user explicitly opts in. Percentages have sensible defaults ready
@@ -38,6 +37,22 @@ const DEFAULT_SETTINGS: BacktestSettings = {
     targetPct: 5,
     trailingStopEnabled: false,
     trailingStopPct: 3,
+  },
+  // Capital % at 90 is exactly what positionSizePct: 0.9 used to mean —
+  // this default preserves every pre-Phase-3.2 result byte-for-byte.
+  positionSizing: {
+    mode: "CAPITAL_PERCENT",
+    capitalPercent: 90,
+    fixedQuantity: 10,
+    riskPercent: 1,
+  },
+  // maxConcurrentPositions: 1 and maxCapitalAllocationPct: 100 are both
+  // unrestricted in the sense that matters — with only one position ever
+  // open and no allocation ceiling below 100%, neither constraint can
+  // ever bind, so pre-Phase-3.2 behavior is preserved exactly by default.
+  portfolio: {
+    maxConcurrentPositions: 1,
+    maxCapitalAllocationPct: 100,
   },
 };
 
@@ -62,6 +77,14 @@ export default function HomePage() {
     setError(null);
     if (!Number.isFinite(settings.initialCapital) || settings.initialCapital <= 0) {
       setError("Initial capital must be a valid number greater than zero.");
+      setResult(null);
+      setIsRunning(false);
+      return;
+    }
+    if (settings.positionSizing.mode === "RISK_PERCENT" && !settings.riskManagement.stopLossEnabled) {
+      setError(
+        "Risk % position sizing requires Stop Loss to be enabled (under Risk Management).",
+      );
       setResult(null);
       setIsRunning(false);
       return;
