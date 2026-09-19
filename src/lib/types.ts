@@ -50,6 +50,9 @@ export type StrategyConfig =
     };
 
 export interface BacktestSettings {
+  costs?: import("./costs/presets").ExecutionCosts;
+  exchange?: "NSE" | "BSE";
+  riskFreeRatePct?: number;
   providerId: string;
   symbol: string;
   startDate: string;
@@ -122,7 +125,7 @@ export interface Trade {
    * settings.riskManagement — a risk-based reason is never recorded for a
    * plain strategy exit, and vice versa.
    */
-  reason: "STRATEGY_EXIT" | "PERIOD_END" | "STOP_LOSS" | "TARGET" | "TRAILING_STOP";
+  reason: "STRATEGY_EXIT" | "PERIOD_END" | "STOP_LOSS" | "TARGET" | "TRAILING_STOP" | "SESSION_END";
   /**
    * Transaction charges (brokerage/slippage/taxes) for this trade.
    * Undefined means the cost model has not been implemented yet — this is
@@ -130,6 +133,9 @@ export interface Trade {
    * apart from "modeled and zero".
    */
   charges?: number;
+  grossPnl?: number;
+  costBreakdown?: import("./costs/engine").TradeCharges;
+  slippageImpact?: number;
   /** Position value at entry (quantity × entryPrice) — the actual ₹ committed to this lot. */
   positionSizeValue: number;
   /** Which sizing mode produced this trade's quantity. */

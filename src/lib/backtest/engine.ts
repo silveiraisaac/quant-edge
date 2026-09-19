@@ -2,6 +2,9 @@ import { BacktestSettings, EquityPoint, OHLCVBar, PositionSizingMode, StrategyCo
 import { relativeStrengthIndex, simpleMovingAverage } from "@/lib/backtest/indicators";
 import { calculateAvailableAllocationCapacity, calculatePositionQuantity } from "@/lib/backtest/position-sizing";
 
+import { resolveCostModel } from "@/lib/costs/presets";
+import { affordableQuantity, calculateCharges, combineCharges, executionPrice, TradeCharges } from "@/lib/costs/engine";
+
 type Signal = "ENTER" | "EXIT" | null;
 
 /**
@@ -69,6 +72,9 @@ export interface EngineOutput {
 }
 
 export interface OpenPosition {
+  entryCharges?: TradeCharges;
+  entryIntendedPrice?: number;
+  exitReserve?: number;
   quantity: number;
   entryPrice: number;
   entryDate: string;
@@ -189,6 +195,12 @@ export function computeAllocatedCostBasis(positions: OpenPosition[]): number {
 }
 
 export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings): EngineOutput {
+  const costs = settings.costs ?? { preset: "ZERO", slippagePct: 0 };
+  const model = resolveCostModel(costs, settings.exchange);
+  const intradayModel = resolveCostModel({ ...costs, preset: "ZERODHA_INTRADAY" }, settings.exchange);
+  const dpDays = new Set<string>();
+  const roundStt = costs.preset !== "CUSTOM";
+  const charge = (turnover: number, side: "BUY" | "SELL", dp = false) => calculateCharges(model, turnover, side, dp, turnover, roundStt);
   const signals = computeSignals(bars, settings.strategy);
   const risk = settings.riskManagement;
   const sizing = settings.positionSizing;
@@ -216,9 +228,26 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
   let portfolioEquityAsOfLastClose = settings.initialCapital;
 
   function closePosition(pos: OpenPosition, price: number, reason: Trade["reason"], exitDate: string) {
+    const intendedExit = price;
+    price = executionPrice(price, "SELL", costs.slippagePct);
     const proceeds = pos.quantity * price;
     const cost = pos.quantity * pos.entryPrice;
-    const pnl = proceeds - cost;
+    let entryCharges = pos.entryCharges ?? charge(cost, "BUY");
+    const sameDay = pos.entryDate === exitDate;
+    const reclassify = costs.preset === "ZERODHA_DELIVERY" && sameDay;
+    if (reclassify) {
+      const actualEntry = calculateCharges(intradayModel, cost, "BUY");
+      cash += entryCharges.total - actualEntry.total;
+      entryCharges = actualEntry;
+    }
+    const dpEligible = !sameDay && !dpDays.has(exitDate);
+    const exitModel = reclassify ? intradayModel : model;
+    const sttTurnover = (reclassify || costs.preset === "ZERODHA_INTRADAY") ? (cost + proceeds) / 2 : proceeds;
+    const exitCharges = calculateCharges(exitModel, proceeds, "SELL", dpEligible, sttTurnover, roundStt);
+    if (dpEligible && exitCharges.dp > 0) dpDays.add(exitDate);
+    const breakdown = combineCharges(entryCharges, exitCharges);
+    const grossPnl = proceeds - cost;
+    const pnl = grossPnl - breakdown.total;
     trades.push({
       id: tradeId++,
       direction: "LONG",
@@ -229,13 +258,17 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
       exitPrice: price,
       quantity: pos.quantity,
       pnl,
+      grossPnl,
+      charges: breakdown.total,
+      costBreakdown: breakdown,
+      slippageImpact: pos.quantity * ((pos.entryPrice - (pos.entryIntendedPrice ?? pos.entryPrice)) + intendedExit - price),
       pnlPct: (pnl / cost) * 100,
       entryReason: "Strategy signal",
       reason,
       positionSizeValue: pos.positionSizeValue,
       positionSizingMode: pos.positionSizingMode,
     });
-    cash += proceeds;
+    cash += proceeds - exitCharges.total;
     positions = positions.filter((p) => p !== pos);
   }
 
@@ -265,7 +298,7 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
     if (pendingAction === "ENTER" && openCountAtStartOfBar < portfolioConfig.maxConcurrentPositions) {
       if (positions.length < portfolioConfig.maxConcurrentPositions) {
         entrySignalsGenerated++;
-        const entryPrice = bar.open;
+        const entryPrice = executionPrice(bar.open, "BUY", costs.slippagePct);
         const initialStopLossPrice = risk.stopLossEnabled
           ? entryPrice * (1 - risk.stopLossPct / 100)
           : null;
@@ -277,32 +310,43 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
           allocatedCostBasis,
         );
 
+        const availableCash = cash - positions.reduce((sum, p) => sum + (p.exitReserve ?? 0), 0);
         const sizingResult = calculatePositionQuantity({
           config: sizing,
-          availableCash: cash,
+          availableCash,
           entryPrice,
           initialStopLossPrice,
           maxAllocationCapacity,
         });
 
-        if (!sizingResult.rejected && sizingResult.quantity > 0) {
+        const exitReserve = model.dpBase * (1 + model.gstPct / 100) + (model.sttSellPct > 0 && roundStt ? 1 : 0);
+        const entryFees = (q: number) => {
+          const regular = charge(q * entryPrice, "BUY").total;
+          const sameDay = costs.preset === "ZERODHA_DELIVERY" ? calculateCharges(intradayModel, q * entryPrice, "BUY").total : regular;
+          return Math.max(regular, sameDay) + exitReserve;
+        };
+        const quantity = affordableQuantity(sizingResult.quantity, entryPrice, Math.max(0, availableCash), entryFees);
+        if (!sizingResult.rejected && quantity > 0) {
           const targetPrice = risk.targetEnabled ? entryPrice * (1 + risk.targetPct / 100) : null;
           const highestFavorablePrice = risk.trailingStopEnabled ? entryPrice : null;
           const trailingStopPrice = risk.trailingStopEnabled
             ? entryPrice * (1 - risk.trailingStopPct / 100)
             : null;
           positions.push({
-            quantity: sizingResult.quantity,
+            quantity,
+            entryCharges: charge(quantity * entryPrice, "BUY"),
+            entryIntendedPrice: bar.open,
+            exitReserve,
             entryPrice,
             entryDate: bar.date,
             stopLossPrice: initialStopLossPrice,
             targetPrice,
             highestFavorablePrice,
             trailingStopPrice,
-            positionSizeValue: sizingResult.positionValue,
+            positionSizeValue: quantity * entryPrice,
             positionSizingMode: sizing.mode,
           });
-          cash -= sizingResult.positionValue;
+          cash -= quantity * entryPrice + charge(quantity * entryPrice, "BUY").total;
         } else {
           entriesSkippedInsufficientCapital++;
         }
@@ -329,6 +373,9 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
       }
     }
 
+    if (costs.preset === "ZERODHA_INTRADAY") {
+      for (const pos of [...positions]) closePosition(pos, bar.close, "SESSION_END", bar.date);
+    }
     pendingAction = signals[i];
 
     // Mark-to-market at this bar's close for the equity curve, and record

@@ -28,7 +28,7 @@ export function ConfigPanel({ symbols, settings, onChange, onRun, isRunning }: P
       <PortfolioConstraintsSection settings={settings} onChange={onChange} />
       <StrategySection settings={settings} onChange={onChange} />
       <RiskManagementSection settings={settings} onChange={onChange} />
-      <CostsSection />
+      <CostsSection settings={settings} onChange={onChange} />
 
       <button
         onClick={onRun}

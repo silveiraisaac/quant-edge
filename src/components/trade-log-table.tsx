@@ -12,6 +12,7 @@ const EXIT_REASON_LABELS: Record<Trade["reason"], string> = {
   TARGET: "Target",
   TRAILING_STOP: "Trailing Stop",
   PERIOD_END: "Period End",
+  SESSION_END: "Session End",
 };
 
 const EXIT_REASON_STYLES: Record<Trade["reason"], string> = {
@@ -20,6 +21,7 @@ const EXIT_REASON_STYLES: Record<Trade["reason"], string> = {
   TARGET: "text-emerald-600 font-medium",
   TRAILING_STOP: "text-amber-600 font-medium",
   PERIOD_END: "text-slate-400",
+  SESSION_END: "text-slate-500",
 };
 
 function exitReasonLabel(reason: Trade["reason"]): string {
@@ -69,7 +71,7 @@ export function TradeLogTable({ trades }: { trades: Trade[] }) {
             </thead>
             <tbody>
               {trades.map((t) => {
-                const netPnl = t.charges !== undefined ? t.pnl - t.charges : t.pnl;
+                const netPnl = t.pnl;
                 return (
                   <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50">
                     <td className="px-2 py-2 text-slate-500">{t.id}</td>
@@ -94,7 +96,7 @@ export function TradeLogTable({ trades }: { trades: Trade[] }) {
                         t.pnl >= 0 ? "text-emerald-600" : "text-red-600"
                       }`}
                     >
-                      {formatCurrency(t.pnl)}
+                      {formatCurrency(t.grossPnl ?? t.pnl)}
                     </td>
                     <td className="qe-figure px-2 py-2 text-right text-slate-400">
                       {t.charges !== undefined ? formatCurrency(t.charges) : "—"}
@@ -128,8 +130,7 @@ export function TradeLogTable({ trades }: { trades: Trade[] }) {
         </div>
       )}
       <p className="mt-3 text-xs text-slate-400">
-        Charges are shown as &ldquo;—&rdquo; because the cost model (brokerage, slippage, taxes)
-        is not yet implemented — Net P&L currently equals Gross P&L.
+        Gross P&L uses execution prices after slippage. Net P&L subtracts entry and exit charges once.
       </p>
     </div>
   );
