@@ -17,6 +17,7 @@ export interface OHLCVBar {
 export interface SymbolInfo {
   symbol: string;
   name: string;
+  exchange?: "NSE" | "BSE";
 }
 
 /**
@@ -29,7 +30,7 @@ export interface DataProvider {
   /** Whether this provider's data is synthetic/demo and must be labelled as such in the UI. */
   readonly isSynthetic: boolean;
   listSymbols(): Promise<SymbolInfo[]>;
-  getBars(symbol: string, startDate: string, endDate: string): Promise<OHLCVBar[]>;
+  getBars(symbol: string, startDate: string, endDate: string, exchange?: string): Promise<OHLCVBar[]>;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -50,6 +51,7 @@ export type StrategyConfig =
     };
 
 export interface BacktestSettings {
+  timeframe?: "day";
   costs?: import("./costs/presets").ExecutionCosts;
   exchange?: "NSE" | "BSE";
   riskFreeRatePct?: number;
@@ -177,6 +179,7 @@ export interface PerformanceSummary {
 }
 
 export interface BacktestResult {
+  provenance?: {provider:string;symbol:string;exchange:string;timeframe:string;requestedStart:string;requestedEnd:string;actualStart:string;actualEnd:string;barCount:number;dataHash:string;retrievedAt:string;adjustmentPolicy:string};
   settings: BacktestSettings;
   isSynthetic: boolean;
   bars: OHLCVBar[];

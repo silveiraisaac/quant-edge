@@ -1,17 +1,12 @@
 import { BacktestResult, BacktestSettings } from "@/lib/types";
-import { getProvider } from "@/lib/data/registry";
+import { historicalData } from "@/lib/data/historical-service";
+import { validateSettings } from "@/lib/validation";
 import { runBacktestEngine } from "@/lib/backtest/engine";
 import { computeDrawdownCurve, computeMonthlyReturns, computeSummary } from "@/lib/backtest/metrics";
 
 export async function runBacktest(settings: BacktestSettings): Promise<BacktestResult> {
-  const provider = getProvider(settings.providerId);
-  const bars = await provider.getBars(settings.symbol, settings.startDate, settings.endDate);
-
-  if (bars.length === 0) {
-    throw new Error(
-      "No price data available for the selected symbol and date range. Try a wider date range.",
-    );
-  }
+  settings = validateSettings(settings);
+  const { bars, isSynthetic, provenance } = await historicalData(settings);
 
   const { trades, equityCurve, entrySignalsGenerated, entriesSkippedInsufficientCapital } =
     runBacktestEngine(bars, settings);
@@ -28,7 +23,8 @@ export async function runBacktest(settings: BacktestSettings): Promise<BacktestR
 
   return {
     settings,
-    isSynthetic: provider.isSynthetic,
+    isSynthetic,
+    provenance,
     bars,
     trades,
     equityCurve,
