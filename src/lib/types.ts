@@ -143,6 +143,9 @@ export interface Trade {
 }
 
 export interface EquityPoint {
+  cash?: number;
+  invested?: number;
+  openPositions?: number;
   date: string;
   equity: number;
 }

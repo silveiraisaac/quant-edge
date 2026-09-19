@@ -13,7 +13,7 @@ type Signal = "ENTER" | "EXIT" | null;
  * the engine then executes on the *next* bar's open, so there's no
  * lookahead bias.
  */
-function computeSignals(bars: OHLCVBar[], strategy: StrategyConfig): Signal[] {
+export function computeSignals(bars: OHLCVBar[], strategy: StrategyConfig): Signal[] {
   const closes = bars.map((b) => b.close);
   const signals: Signal[] = new Array(bars.length).fill(null);
 
@@ -381,7 +381,7 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
     // Mark-to-market at this bar's close for the equity curve, and record
     // it as "as of last close" for sizing decisions on the NEXT bar.
     const equity = computePortfolioEquity(cash, positions, bar.close);
-    equityCurve.push({ date: bar.date, equity });
+    equityCurve.push({ date: bar.date, equity, cash, invested: positions.reduce((s, p) => s + p.quantity * bar.close, 0), openPositions: positions.length });
     portfolioEquityAsOfLastClose = equity;
   }
 
@@ -393,7 +393,7 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
       closePosition(pos, lastBar.close, "PERIOD_END", lastBar.date);
     }
     if (equityCurve.length > 0) {
-      equityCurve[equityCurve.length - 1] = { date: lastBar.date, equity: cash };
+      equityCurve[equityCurve.length - 1] = { date: lastBar.date, equity: cash, cash, invested: 0, openPositions: 0 };
     }
   }
 
