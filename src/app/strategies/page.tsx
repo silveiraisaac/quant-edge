@@ -27,8 +27,7 @@ export default function StrategiesPage() {
       </div>
 
       <div className="qe-card border-dashed p-5 text-sm text-slate-400">
-        More strategies — including ones with stop-loss and target logic — are planned for a
-        future phase once risk-management support is built into the engine.
+        All strategies support the shared risk controls and costs. Strategy descriptions are research tools, not investment advice.
       </div>
     </div>
   );

@@ -38,6 +38,12 @@ export interface DataProvider {
 /* -------------------------------------------------------------------------- */
 
 export type StrategyConfig =
+  | {type: 'EMA_CROSSOVER'; fastPeriod:number; slowPeriod:number}
+  | {type: 'RSI_MOMENTUM'; period:number; entryThreshold:number; exitThreshold:number}
+  | {type: 'DONCHIAN'; entryPeriod:number; exitPeriod:number}
+  | {type: 'ROC'; period:number; threshold:number}
+  | {type: 'BOLLINGER'; period:number; deviations:number}
+  | {type: 'MACD'; fastPeriod:number; slowPeriod:number; signalPeriod:number}
   | {
       type: "SMA_CROSSOVER";
       fastPeriod: number;

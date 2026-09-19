@@ -4,6 +4,7 @@
  */
 
 export function simpleMovingAverage(values: number[], period: number): (number | null)[] {
+  validatePeriod(period);
   const result: (number | null)[] = new Array(values.length).fill(null);
   let sum = 0;
   for (let i = 0; i < values.length; i++) {
@@ -15,6 +16,7 @@ export function simpleMovingAverage(values: number[], period: number): (number |
 }
 
 export function relativeStrengthIndex(values: number[], period: number): (number | null)[] {
+  validatePeriod(period);
   const result: (number | null)[] = new Array(values.length).fill(null);
   if (values.length <= period) return result;
 
@@ -42,7 +44,21 @@ export function relativeStrengthIndex(values: number[], period: number): (number
 }
 
 function rsiFromAverages(avgGain: number, avgLoss: number): number {
+  if (avgGain === 0 && avgLoss === 0) return 50;
   if (avgLoss === 0) return 100;
   const rs = avgGain / avgLoss;
   return 100 - 100 / (1 + rs);
+}
+
+function validatePeriod(period:number) {
+  if(!Number.isInteger(period)||period<1)throw new Error('Indicator period must be a positive integer.');
+}
+export function exponentialMovingAverage(values:number[],period:number):(number|null)[] {
+  validatePeriod(period);
+  const result:(number|null)[]=Array(values.length).fill(null);
+  if(values.length<period)return result;
+  let value=values.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  result[period-1]=value;
+  for(let i=period;i<values.length;i++){value+=(values[i]-value)*2/(period+1);result[i]=value;}
+  return result;
 }

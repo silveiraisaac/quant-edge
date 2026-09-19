@@ -14,13 +14,22 @@ export function validDate(value: unknown): value is string {
 }
 export function validateStrategy(value: unknown) {
   const s=object(value);
-  if(s.type==='SMA_CROSSOVER') {
+  if(['SMA_CROSSOVER','EMA_CROSSOVER','MACD'].includes(String(s.type))) {
     number(s.fastPeriod,'Fast period',2,400,true);number(s.slowPeriod,'Slow period',3,500,true);
     if(Number(s.fastPeriod)>=Number(s.slowPeriod)) throw new UserError('Fast period must be smaller than slow period.');
+    if(s.type==='MACD')number(s.signalPeriod,'Signal period',2,200,true);
   } else if(s.type==='RSI_MEAN_REVERSION') {
     number(s.period,'RSI period',2,400,true);number(s.oversold,'Oversold',1,99);number(s.overbought,'Overbought',1,99);
     if(Number(s.oversold)>=Number(s.overbought)) throw new UserError('Oversold must be below overbought.');
-  } else throw new UserError('Unknown strategy.');
+  } else if(s.type==='RSI_MOMENTUM') {
+    number(s.period,'RSI period',2,400,true);number(s.entryThreshold,'Entry threshold',1,99);number(s.exitThreshold,'Exit threshold',1,99);
+    if(Number(s.exitThreshold)>=Number(s.entryThreshold))throw new UserError('Exit threshold must be below entry threshold.');
+  } else if(s.type==='DONCHIAN') {
+    number(s.entryPeriod,'Entry period',2,500,true);number(s.exitPeriod,'Exit period',2,500,true);
+    if(Number(s.exitPeriod)>Number(s.entryPeriod))throw new UserError('Exit period must not exceed entry period.');
+  } else if(s.type==='ROC') {number(s.period,'ROC period',2,400,true);number(s.threshold,'ROC threshold',0,50);}
+  else if(s.type==='BOLLINGER') {number(s.period,'Band period',2,400,true);number(s.deviations,'Standard deviations',0.5,5);}
+  else throw new UserError('Unknown strategy.');
 }
 export function validateSettings(input: unknown): BacktestSettings {
   const s=object(input);

@@ -5,6 +5,8 @@ import { calculateAvailableAllocationCapacity, calculatePositionQuantity } from 
 import { resolveCostModel } from "@/lib/costs/presets";
 import { affordableQuantity, calculateCharges, combineCharges, executionPrice, TradeCharges } from "@/lib/costs/engine";
 
+import { extraSignals } from "./signals-extra";
+
 type Signal = "ENTER" | "EXIT" | null;
 
 /**
@@ -34,6 +36,8 @@ export function computeSignals(bars: OHLCVBar[], strategy: StrategyConfig): Sign
     }
     return signals;
   }
+
+  if (strategy.type !== "RSI_MEAN_REVERSION") return extraSignals(bars, strategy);
 
   // RSI_MEAN_REVERSION: enter when RSI recovers back above the oversold
   // line (a bounce signal), exit when RSI pushes above the overbought line.
