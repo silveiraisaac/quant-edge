@@ -7,12 +7,6 @@ interface Props {
   onChange: (settings: BacktestSettings) => void;
 }
 
-/**
- * Stop Loss, Target, and Trailing Stop are now real, engine-backed
- * controls (Phase 3.1). Max drawdown limit remains a disabled placeholder
- * — that control belongs to a later Phase 3 step and is intentionally not
- * wired to anything yet.
- */
 export function RiskManagementSection({ settings, onChange }: Props) {
   const risk = settings.riskManagement;
 
@@ -47,13 +41,6 @@ export function RiskManagementSection({ settings, onChange }: Props) {
         helpText="Stop trails this % below the highest price reached since entry — never moves down."
       />
 
-      <div className="flex items-center gap-2">
-        <h4 className="text-xs font-medium text-slate-400">Max drawdown limit</h4>
-        <span className="qe-badge-soon">Coming soon</span>
-      </div>
-      <Field label="Max drawdown limit (%)">
-        <input type="number" disabled placeholder="Not yet supported" className="input" />
-      </Field>
       <p className="text-xs text-slate-400">
         When stop loss, target, and trailing stop are all disabled, backtests run exactly as
         before this feature — exits are driven only by the strategy&apos;s own signals.

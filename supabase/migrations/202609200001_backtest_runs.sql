@@ -17,3 +17,17 @@ grant select, insert, delete on public.backtest_runs to authenticated;
 create policy read_own_runs on public.backtest_runs for select to authenticated using ((select auth.uid()) = user_id);
 create policy insert_own_runs on public.backtest_runs for insert to authenticated with check ((select auth.uid()) = user_id);
 create policy delete_own_runs on public.backtest_runs for delete to authenticated using ((select auth.uid()) = user_id);
+
+-- Match the launch capacity policy without an insert/count race.
+create or replace function public.enforce_saved_run_capacity() returns trigger
+language plpgsql security invoker set search_path = public, pg_temp as $$
+begin
+  perform pg_advisory_xact_lock(hashtextextended(new.user_id::text, 0));
+  if (select count(*) from public.backtest_runs where user_id = new.user_id) >= 100 then
+    raise exception 'Saved run capacity reached' using errcode = '23514';
+  end if;
+  return new;
+end;
+$$;
+create trigger saved_run_capacity before insert on public.backtest_runs
+for each row execute function public.enforce_saved_run_capacity();

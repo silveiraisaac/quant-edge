@@ -84,7 +84,7 @@ export function PositionSizingSection({ settings, onChange }: Props) {
         {sizing.mode === "FIXED_QUANTITY" &&
           "Every entry attempts this exact quantity, reduced automatically if capital or allocation limits don't allow the full amount."}
         {sizing.mode === "RISK_PERCENT" &&
-          "Quantity is sized so that a stop-loss hit would lose no more than this % of capital — risk per share is entry price minus the initial stop-loss price."}
+          "Uses available cash and initial stop distance. Gaps, slippage and charges can increase realized loss beyond the configured risk budget."}
       </p>
     </ConfigSection>
   );

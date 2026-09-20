@@ -78,11 +78,11 @@ export function TradeLogTable({ trades }: { trades: Trade[] }) {
                     <td className="px-2 py-2 font-medium text-slate-700">{t.symbol}</td>
                     <td className="px-2 py-2 text-slate-700">{formatDate(t.entryDate)}</td>
                     <td className="qe-figure px-2 py-2 text-right text-slate-700">
-                      {formatCurrency(t.entryPrice)}
+                      {formatCurrency(t.entryPrice, 2)}
                     </td>
                     <td className="px-2 py-2 text-slate-700">{formatDate(t.exitDate)}</td>
                     <td className="qe-figure px-2 py-2 text-right text-slate-700">
-                      {formatCurrency(t.exitPrice)}
+                      {formatCurrency(t.exitPrice, 2)}
                     </td>
                     <td className="qe-figure px-2 py-2 text-right text-slate-700">{t.quantity}</td>
                     <td className="qe-figure px-2 py-2 text-right text-slate-500">
@@ -98,8 +98,8 @@ export function TradeLogTable({ trades }: { trades: Trade[] }) {
                     >
                       {formatCurrency(t.grossPnl ?? t.pnl)}
                     </td>
-                    <td className="qe-figure px-2 py-2 text-right text-slate-400">
-                      {t.charges !== undefined ? formatCurrency(t.charges) : "—"}
+                    <td title={t.costBreakdown ? Object.entries(t.costBreakdown).map(([k,v])=>`${k}: ₹${v.toFixed(2)}`).join("; ") : "Zero costs"} className="qe-figure px-2 py-2 text-right text-slate-400">
+                      {t.charges !== undefined ? formatCurrency(t.charges, 2) : "—"}
                     </td>
                     <td
                       className={`qe-figure px-2 py-2 text-right font-medium ${

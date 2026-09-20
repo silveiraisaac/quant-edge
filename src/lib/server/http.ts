@@ -11,5 +11,5 @@ export function sameOrigin(request:Request) {
   if(!origin||origin!==new URL(request.url).origin)throw new UserError('Request origin is not allowed.',403);
 }
 export function errorResponse(error:unknown) {
-  return Response.json({error:error instanceof UserError?error.message:'The request could not be completed. Please try again.'},{status:error instanceof UserError?error.status:500,headers:{'Cache-Control':'no-store'}});
+  return Response.json({error:error instanceof UserError?error.message:'The request could not be completed. Please try again.'},{status:error instanceof UserError?error.status:500,headers:{'Cache-Control':'no-store',...(error instanceof UserError&&error.status===429?{'Retry-After':'60'}:{})}});
 }

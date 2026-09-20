@@ -323,11 +323,14 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
           maxAllocationCapacity,
         });
 
-        const exitReserve = model.dpBase * (1 + model.gstPct / 100) + (model.sttSellPct > 0 && roundStt ? 1 : 0);
+        // Intraday STT can retain an entry-turnover component even after a
+        // near-total price collapse; reserve that known liability up front.
+        const fixedExitReserve = model.dpBase * (1 + model.gstPct / 100) + (model.sttSellPct > 0 && roundStt ? 1 : 0);
+        const reserveFor = (q: number) => fixedExitReserve + ((costs.preset === 'ZERODHA_INTRADAY' || costs.preset === 'ZERODHA_DELIVERY') ? q * entryPrice * intradayModel.sttSellPct / 200 : 0);
         const entryFees = (q: number) => {
           const regular = charge(q * entryPrice, "BUY").total;
           const sameDay = costs.preset === "ZERODHA_DELIVERY" ? calculateCharges(intradayModel, q * entryPrice, "BUY").total : regular;
-          return Math.max(regular, sameDay) + exitReserve;
+          return Math.max(regular, sameDay) + reserveFor(q);
         };
         const quantity = affordableQuantity(sizingResult.quantity, entryPrice, Math.max(0, availableCash), entryFees);
         if (!sizingResult.rejected && quantity > 0) {
@@ -340,7 +343,7 @@ export function runBacktestEngine(bars: OHLCVBar[], settings: BacktestSettings):
             quantity,
             entryCharges: charge(quantity * entryPrice, "BUY"),
             entryIntendedPrice: bar.open,
-            exitReserve,
+            exitReserve: reserveFor(quantity),
             entryPrice,
             entryDate: bar.date,
             stopLossPrice: initialStopLossPrice,

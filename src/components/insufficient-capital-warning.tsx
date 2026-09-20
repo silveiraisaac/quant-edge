@@ -9,7 +9,7 @@ const MODE_DESCRIPTIONS: Record<string, string> = {
 
 export function InsufficientCapitalWarning({ result }: { result: BacktestResult }) {
   const prices = result.bars.map((b) => b.open);
-  const cheapestPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const cheapestPrice = result.lowestOpenPrice ?? (prices.length > 0 ? Math.min(...prices) : 0);
   const modeDescription = MODE_DESCRIPTIONS[result.settings.positionSizing.mode] ?? "the configured sizing";
 
   return (

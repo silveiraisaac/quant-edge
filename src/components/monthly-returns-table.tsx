@@ -19,7 +19,7 @@ export function MonthlyReturnsTable({ data }: { data: MonthlyReturn[] }) {
     <div className="qe-card p-5">
       <h2 className="mb-4 text-sm font-semibold text-slate-900">Monthly Returns</h2>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="w-full min-w-[650px] whitespace-nowrap text-xs">
           <thead>
             <tr>
               <th className="px-2 py-1.5 text-left font-medium text-slate-500">Year</th>

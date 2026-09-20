@@ -2,6 +2,7 @@ import 'server-only';
 import { DataProvider, SymbolInfo } from '../types';
 import { UserError, object } from '../validation';
 import { normalizeKiteCandles } from './validation';
+import { setTimeout as delay } from 'node:timers/promises';
 export function kiteInstruments(): (SymbolInfo & {token:number;exchange:'NSE'|'BSE'})[] {
   if(!process.env.KITE_INSTRUMENTS_JSON) return [];
   try {
@@ -21,6 +22,7 @@ export class KiteDataProvider implements DataProvider {
     const bars=[];
     // Conservative 365-day chunks, disjoint dates; no invented missing sessions.
     for(let from=Date.parse(startDate);from<=Date.parse(endDate);from+=365*86400000) {
+      if(from>Date.parse(startDate))await delay(400);
       const to=Math.min(from+364*86400000,Date.parse(endDate));
       const url=new URL(`https://api.kite.trade/instruments/historical/${instrument.token}/day`);
       url.searchParams.set('from',new Date(from).toISOString().slice(0,10)+' 00:00:00');url.searchParams.set('to',new Date(to).toISOString().slice(0,10)+' 23:59:59');
