@@ -14,6 +14,15 @@ test('intraday catastrophic decline still funds entry-basis STT',()=>{
  const r=runBacktestEngine(b,{...settings,initialCapital:100000,strategy:{type:'SMA_CROSSOVER',fastPeriod:2,slowPeriod:3},positionSizing:{...settings.positionSizing,capitalPercent:100},costs:{preset:'ZERODHA_INTRADAY',slippagePct:0}});
  assert.ok(r.trades.length===1);assert.ok(r.equityCurve.at(-1)!.cash!>=0);
 });
+test('full engine slippage changes fills and is not charged twice',()=>{
+ const b=candles([3,2,1,2,3,110]);b[5].open=100;b[5].low=100;
+ const r=runBacktestEngine(b,{...settings,strategy:{type:'SMA_CROSSOVER',fastPeriod:2,slowPeriod:3},positionSizing:{...settings.positionSizing,mode:'FIXED_QUANTITY',fixedQuantity:10},costs:{preset:'ZERO',slippagePct:0.5}});
+ assert.equal(r.trades[0].entryPrice,100.49999999999999);assert.ok(Math.abs(r.trades[0].exitPrice-109.45)<1e-10);assert.ok(Math.abs(r.trades[0].pnl-89.5)<1e-8);assert.ok(Math.abs(r.trades[0].slippageImpact!-10.5)<1e-8);assert.equal(r.trades[0].charges,0);
+});
+test('concurrent lots resolve their own stop levels before strategy exit',()=>{
+ const r=runBacktestEngine(candles([10,10,12,14,16,18,20,17,15]),{...settings,strategy:{type:'DONCHIAN',entryPeriod:2,exitPeriod:2},portfolio:{maxConcurrentPositions:3,maxCapitalAllocationPct:100},positionSizing:{...settings.positionSizing,mode:'FIXED_QUANTITY',fixedQuantity:10},riskManagement:{...settings.riskManagement,stopLossEnabled:true,stopLossPct:10}});
+ assert.equal(r.trades.find(t=>t.entryPrice===18)?.reason,'STOP_LOSS');assert.equal(r.trades.find(t=>t.entryPrice===14)?.reason,'STRATEGY_EXIT');assert.equal(r.trades.find(t=>t.entryPrice===18)?.exitPrice,15);
+});
 test('multiple overnight lots pay one DP fee per symbol per exit day',()=>{
  const b=candles([10,10,12,14,16,18,20,5]);
  const r=runBacktestEngine(b,{...settings,strategy:{type:'DONCHIAN',entryPeriod:2,exitPeriod:2},portfolio:{maxConcurrentPositions:3,maxCapitalAllocationPct:100},positionSizing:{...settings.positionSizing,mode:'FIXED_QUANTITY',fixedQuantity:10},costs:{preset:'ZERODHA_DELIVERY',slippagePct:0}});

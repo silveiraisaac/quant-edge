@@ -24,7 +24,7 @@ export function SummaryStatsCards({ summary }: { summary: PerformanceSummary }) 
 
   const tradeCards: Card[] = [
     { label: "Number of Trades", value: String(summary.totalTrades), accent: "text-slate-900" },
-    { label: "Win Rate", value: `${formatNumber(summary.winRatePct, 1)}%`, accent: "text-slate-900" },
+    { label: "Win Rate", value: summary.winRatePct === null ? "N/A" : `${formatNumber(summary.winRatePct, 1)}%`, accent: "text-slate-900" },
     {
       label: "Profit Factor",
       value: formatNumber(summary.profitFactor, 2),

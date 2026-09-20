@@ -31,10 +31,11 @@ export function advancedAnalytics(initial:number,curve:EquityPoint[],trades:Trad
   const exposed=curve.filter(p=>trades.some(t=>t.entryDate<=p.date&&t.exitDate>=p.date)).length;
   const years=curve.length>1?daysBetween(curve[0].date,curve.at(-1)!.date)/365.2425:0;
   const ending=curve.at(-1)?.equity??initial;
+  const cagr=years>0&&ending>0?(Math.pow(ending/initial,1/years)-1)*100:null;
   return {
-    cagrPct:years>0&&ending>0?(Math.pow(ending/initial,1/years)-1)*100:null,
-    sharpeRatio:std&&excessMean!==null?excessMean/std*Math.sqrt(periodsPerYear):null,
-    sortinoRatio:downside&&excessMean!==null?excessMean/downside*Math.sqrt(periodsPerYear):null,
+    cagrPct:cagr!==null&&Number.isFinite(cagr)?cagr:null,
+    sharpeRatio:std!==null&&std>1e-12&&excessMean!==null?excessMean/std*Math.sqrt(periodsPerYear):null,
+    sortinoRatio:downside!==null&&downside>1e-12&&excessMean!==null?excessMean/downside*Math.sqrt(periodsPerYear):null,
     volatilityPct:std===null?null:std*Math.sqrt(periodsPerYear)*100,
     maxDrawdownPct,maxDrawdownInr,drawdownPeakDate,drawdownTroughDate,recoveryDate,drawdownDurationDays,longestRecoveryDays,
     winningTrades:wins.length,losingTrades:losses.length,breakevenTrades:trades.length-wins.length-losses.length,

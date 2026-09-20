@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --import ./tests/register.mjs --test tests/*.test.ts",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "check": "node scripts/check.mjs"
   },
   "dependencies": {
     "next": "16.3.5",

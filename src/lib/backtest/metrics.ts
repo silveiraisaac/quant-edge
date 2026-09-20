@@ -56,8 +56,8 @@ export function computeSummary(
   return {
     startingCapital,endingCapital,netPnl:endingCapital-startingCapital,
     totalReturnPct:(endingCapital/startingCapital-1)*100,totalTrades:trades.length,
-    avgWinPct:wins.length?wins.reduce((s,t)=>s+t.pnlPct,0)/wins.length:0,
-    avgLossPct:losses.length?losses.reduce((s,t)=>s+t.pnlPct,0)/losses.length:0,
+    avgWinPct:wins.length?wins.reduce((s,t)=>s+t.pnlPct,0)/wins.length:null,
+    avgLossPct:losses.length?losses.reduce((s,t)=>s+t.pnlPct,0)/losses.length:null,
     ...advancedAnalytics(startingCapital,equityCurve,trades,riskFreeRatePct),
   };
 }

@@ -21,7 +21,7 @@ export interface SymbolInfo {
 }
 
 /**
- * Any data source — synthetic today, a real market-data API later — must
+ * Both demo and real historical data sources must
  * implement this. The engine and UI only ever talk to this interface.
  */
 export interface DataProvider {
@@ -134,12 +134,7 @@ export interface Trade {
    * plain strategy exit, and vice versa.
    */
   reason: "STRATEGY_EXIT" | "PERIOD_END" | "STOP_LOSS" | "TARGET" | "TRAILING_STOP" | "SESSION_END";
-  /**
-   * Transaction charges (brokerage/slippage/taxes) for this trade.
-   * Undefined means the cost model has not been implemented yet — this is
-   * never defaulted to 0 or estimated, so the UI can tell "not modeled"
-   * apart from "modeled and zero".
-   */
+  /** Entry and exit cash charges; slippage is already in fill prices. */
   charges?: number;
   grossPnl?: number;
   costBreakdown?: import("./costs/engine").TradeCharges;
@@ -178,14 +173,15 @@ export interface PerformanceSummary extends ReturnType<typeof import("./backtest
   maxDrawdownPct: number;
   totalTrades: number;
   winRatePct: number | null;
-  avgWinPct: number;
-  avgLossPct: number;
+  avgWinPct: number | null;
+  avgLossPct: number | null;
   profitFactor: number | null;
   sharpeRatio: number | null;
 }
 
 export interface BacktestResult {
-  provenance?: {provider:string;symbol:string;exchange:string;timeframe:string;requestedStart:string;requestedEnd:string;actualStart:string;actualEnd:string;barCount:number;dataHash:string;retrievedAt:string;adjustmentPolicy:string};
+  lowestOpenPrice?: number;
+  provenance?: {engineVersion:string;costRateVersion:string;provider:string;symbol:string;exchange:string;timeframe:string;requestedStart:string;requestedEnd:string;actualStart:string;actualEnd:string;barCount:number;dataHash:string;retrievedAt:string;adjustmentPolicy:string};
   settings: BacktestSettings;
   isSynthetic: boolean;
   bars: OHLCVBar[];

@@ -1,12 +1,6 @@
 import { StrategyConfig } from "@/lib/types";
 
-/**
- * Central strategy registry. The config panel, the Strategies info page,
- * and (eventually) any strategy-specific validation all read from this
- * file rather than hardcoding strategy metadata in multiple places — to
- * add a new strategy: add its type to `StrategyConfig` in `types.ts`,
- * implement its signal logic in `engine.ts`, then add one entry here.
- */
+/** Central metadata and default-parameter registry shared by the UI and docs. */
 export interface StrategyDefinition {
   type: StrategyConfig["type"];
   category: "Trend Following" | "Momentum" | "Mean Reversion" | "Breakout";

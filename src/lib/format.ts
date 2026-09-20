@@ -1,9 +1,10 @@
-export function formatCurrency(value: number | null): string {
+export function formatCurrency(value: number | null, decimals = 0): string {
   if(value === null || !Number.isFinite(value)) return "N/A";
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
   }).format(value);
 }
 

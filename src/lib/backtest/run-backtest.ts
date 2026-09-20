@@ -22,6 +22,7 @@ export async function runBacktest(settings: BacktestSettings): Promise<BacktestR
     entriesSkippedInsufficientCapital === entrySignalsGenerated;
 
   return {
+    lowestOpenPrice: Math.min(...bars.map(b => b.open)),
     settings,
     isSynthetic,
     provenance,

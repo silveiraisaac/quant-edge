@@ -1,4 +1,5 @@
 import { BacktestSettings } from './types';
+import { getEntitlements } from './entitlements';
 import { COST_PRESETS, ZERO_MODEL } from './costs/presets';
 export class UserError extends Error { constructor(message: string, public status = 400) { super(message); } }
 export function object(value: unknown): Record<string, unknown> {
@@ -36,7 +37,7 @@ export function validateSettings(input: unknown): BacktestSettings {
   if(!['synthetic','kite'].includes(String(s.providerId))) throw new UserError('Unknown data provider.');
   if(typeof s.symbol!=='string' || !/^[A-Z0-9][A-Z0-9&_. -]{0,49}$/.test(s.symbol)) throw new UserError('Invalid symbol.');
   if(!validDate(s.startDate)||!validDate(s.endDate)||s.startDate>s.endDate) throw new UserError('Use valid dates with start on or before end.');
-  if(Date.parse(s.endDate)-Date.parse(s.startDate)>366*10*86400000) throw new UserError('Maximum backtest range is 10 years.');
+  if(Date.parse(s.endDate)-Date.parse(s.startDate)>getEntitlements('FREE').maxHistoricalDays*86400000) throw new UserError('Maximum backtest range is 10 years.');
   if(s.timeframe!==undefined && s.timeframe!=='day') throw new UserError('Only daily candles are supported.');
   if(s.exchange!==undefined && !['NSE','BSE'].includes(String(s.exchange))) throw new UserError('Exchange must be NSE or BSE.');
   number(s.initialCapital,'Initial capital',1,1e10);

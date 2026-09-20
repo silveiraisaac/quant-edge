@@ -7,7 +7,7 @@ export function validateBars(input: unknown): OHLCVBar[] {
     const b=object(raw);
     if(!validDate(b.date)||b.date<=previous) throw new UserError('Market data dates must be unique and increasing.',502);
     previous=b.date;
-    for(const key of ['open','high','low','close','volume']) if(typeof b[key]!=='number'||!Number.isFinite(b[key])||Number(b[key])<(key==='volume'?0:0.00000001)) throw new UserError('Market data has missing or invalid prices/volume.',502);
+    for(const key of ['open','high','low','close','volume']) if(typeof b[key]!=='number'||!Number.isFinite(b[key])||Number(b[key])<(key==='volume'?0:0.01)||Number(b[key])>(key==='volume'?1e15:1e9)) throw new UserError('Market data has missing or invalid prices/volume.',502);
     if(Number(b.high)<Math.max(Number(b.open),Number(b.close),Number(b.low))||Number(b.low)>Math.min(Number(b.open),Number(b.close))) throw new UserError('Market data OHLC relationships are invalid.',502);
     return {date:b.date,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume} as OHLCVBar;
   });

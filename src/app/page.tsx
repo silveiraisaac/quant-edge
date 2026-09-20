@@ -20,6 +20,7 @@ import { DemoDataBanner } from "@/components/demo-data-banner";
 
 import { ComparisonPanel } from '@/components/comparison-panel';
 import { ResultActions } from '@/components/result-actions';
+import { getEntitlements } from '@/lib/entitlements';
 import { ComparisonRun } from '@/lib/comparison';
 import { SavedWorkspace } from '@/components/saved-workspace';
 
@@ -191,7 +192,7 @@ export default function HomePage() {
 
     try {
 
-      const response = await fetch('/api/backtest', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(settings)});
+      const response = await fetch('/api/backtest', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(settings),signal:AbortSignal.timeout(120000)});
 
       const output = await response.json();
 
@@ -246,7 +247,7 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[380px_1fr]">
 
-          <div className="lg:sticky lg:top-[72px] lg:self-start">
+          <div className="min-w-0 lg:self-start">
 
             <ConfigPanel
 
@@ -292,7 +293,7 @@ export default function HomePage() {
 
 
 
-            {result && <><ResultActions result={result} disabled={comparisons.length>=4} onCompare={()=>setComparisons(prev=>prev.length>=4?prev:[...prev,{id:crypto.randomUUID(),name:`${result.settings.strategy.type} (${prev.length+1})`,result}])} /><ResultsDashboard result={result} /></>}
+            {result && <><ResultActions result={result} disabled={comparisons.length>=getEntitlements('FREE').maxComparisonRuns} onCompare={()=>setComparisons(prev=>prev.length>=getEntitlements('FREE').maxComparisonRuns?prev:[...prev,{id:crypto.randomUUID(),name:`${result.settings.strategy.type} (${prev.length+1})`,result}])} /><ResultsDashboard result={result} /></>}
             <div className="mt-5"><ComparisonPanel runs={comparisons} onRemove={id=>setComparisons(prev=>prev.filter(r=>r.id!==id))} /></div>
             <div className="mt-5"><SavedWorkspace result={result} onOpen={s=>{setSettings(s);setResult(null);setError(null);}} /></div>
 

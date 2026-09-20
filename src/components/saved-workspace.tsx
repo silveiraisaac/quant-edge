@@ -2,6 +2,7 @@
 import { useEffect,useState } from 'react';
 import { BacktestResult,BacktestSettings } from '@/lib/types';
 import { SavedRun,LOCAL_KEY,parseLocalSaves } from '@/lib/saved';
+import { getEntitlements } from '@/lib/entitlements';
 import { formatCurrency } from '@/lib/format';
 export function SavedWorkspace({result,onOpen}:{result:BacktestResult|null;onOpen:(s:BacktestSettings)=>void}) {
   const [rows,setRows]=useState<SavedRun[]>([]),[name,setName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState('');
@@ -23,7 +24,7 @@ export function SavedWorkspace({result,onOpen}:{result:BacktestResult|null;onOpe
     const label=name.trim()||`${result.settings.strategy.type} · ${result.settings.symbol}`;
     if(cloud){const response=await fetch('/api/saved',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:label,settings:result.settings})});const data=await response.json();if(!response.ok)throw new Error(data.error);}
     else {
-      const current=parseLocalSaves(localStorage.getItem(LOCAL_KEY));if(current.length>=100)throw new Error('Browser storage is limited to 100 reports. Delete older items first.');
+      const current=parseLocalSaves(localStorage.getItem(LOCAL_KEY));if(current.length>=getEntitlements('FREE').maxSavedBacktests)throw new Error('Browser storage is limited to 100 reports. Delete older items first.');
       const saved:SavedRun={id:crypto.randomUUID(),name:label,settings:result.settings,summary:result.summary,provenance:result.provenance,is_synthetic:result.isSynthetic,created_at:new Date().toISOString()};
       localStorage.setItem(LOCAL_KEY,JSON.stringify([saved,...current]));
     }

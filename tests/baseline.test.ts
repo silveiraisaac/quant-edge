@@ -12,4 +12,5 @@ test('RSI demo baseline', async () => {
   const r = await runBacktest({ ...settings, symbol: 'DEMO-MIDCAP-A', strategy: { type: 'RSI_MEAN_REVERSION', period: 14, oversold: 30, overbought: 70 } });
   console.info('RSI baseline', r.trades.length, r.summary.endingCapital);
   assert.equal(r.trades.length, 4);
+  assert.ok(Math.abs(r.summary.endingCapital - 1551418.5299999998)<1e-6);
 });
