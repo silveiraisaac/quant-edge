@@ -3,17 +3,23 @@ import "./globals.css";
 import { Header } from "@/components/header";
 
 export const metadata: Metadata = {
-  title: "Quant Edge — Strategy Backtester",
+  title: "Quant Edge — Quantitative Strategy Research",
   description:
     "Quant Edge: a strategy backtesting platform for Indian equity markets. Currently running in demo mode on synthetic data.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="flex min-h-full flex-col bg-slate-100">
+    <html lang="en" className="h-full antialiased" data-scroll-behavior="smooth">
+      <body className="flex min-h-full flex-col">
         <Header />
         <div className="flex-1">{children}</div>
+        <footer className="border-t border-slate-200/80 bg-white/70">
+          <div className="qe-container flex flex-col gap-2 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+            <p>Quant Edge · Long-only Indian cash-equity research</p>
+            <p>Backtested performance does not guarantee future results.</p>
+          </div>
+        </footer>
       </body>
     </html>
   );

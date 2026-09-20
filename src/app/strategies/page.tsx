@@ -1,34 +1,15 @@
+import Link from "next/link";
 import { STRATEGY_DEFINITIONS } from "@/lib/strategies";
 
-export const metadata = {
-  title: "Strategies — Quant Edge",
-};
+export const metadata = { title: "Strategies — Quant Edge" };
+const categoryStyle: Record<string,string> = {"Trend Following":"border-blue-200 bg-blue-50 text-blue-700",Momentum:"border-violet-200 bg-violet-50 text-violet-700","Mean Reversion":"border-amber-200 bg-amber-50 text-amber-700",Breakout:"border-teal-200 bg-teal-50 text-teal-700"};
 
 export default function StrategiesPage() {
-  return (
-    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900">Strategies</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          The strategies currently available in the backtester. Each one is long-only, and every
-          trade is executed at the bar <em>after</em> the signal is generated — there is no
-          lookahead bias built into any of them.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        {STRATEGY_DEFINITIONS.map((def) => (
-          <div key={def.type} className="qe-card p-5">
-            <h2 className="text-sm font-semibold text-slate-900">{def.label}</h2>
-            <p className="mt-1 text-sm text-slate-600">{def.shortDescription}</p>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">{def.howItWorks}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="qe-card border-dashed p-5 text-sm text-slate-400">
-        All strategies support the shared risk controls and costs. Strategy descriptions are research tools, not investment advice.
-      </div>
+  return <main>
+    <section className="border-b border-slate-200 bg-[var(--qe-navy-950)] text-white"><div className="qe-container py-10 sm:py-14"><p className="text-xs font-bold uppercase tracking-[.18em] text-[var(--qe-accent)]">Strategy library</p><h1 className="mt-2 text-3xl font-bold tracking-[-.035em] sm:text-4xl">Eight transparent research models</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">Explore the exact long-only signal families available in the backtester. Every signal is computed without look-ahead and executes at the following bar’s open.</p><Link href="/#builder" className="qe-btn-primary mt-6 bg-[var(--qe-accent)] text-[var(--qe-navy-950)]">Open the backtest builder →</Link></div></section>
+    <div className="qe-container py-8 sm:py-10"><div className="mb-6 grid gap-3 sm:grid-cols-4">{["Trend Following","Momentum","Mean Reversion","Breakout"].map((category)=><div key={category} className="qe-panel p-4"><p className="text-xs font-bold text-slate-800">{category}</p><p className="mt-1 text-[11px] text-slate-500">{STRATEGY_DEFINITIONS.filter((item)=>item.category===category).length} strategies</p></div>)}</div>
+      <div className="grid gap-4 md:grid-cols-2">{STRATEGY_DEFINITIONS.map((definition,index)=><article key={definition.type} className="qe-card p-5 sm:p-6"><div className="flex items-start justify-between gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-xs font-bold text-slate-600">{String(index+1).padStart(2,"0")}</span><span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${categoryStyle[definition.category]}`}>{definition.category}</span></div><h2 className="qe-title mt-5 text-lg">{definition.label}</h2><p className="mt-2 text-sm font-medium leading-6 text-slate-600">{definition.shortDescription}</p><p className="mt-3 text-sm leading-6 text-slate-500">{definition.howItWorks}</p><div className="mt-5 border-t border-slate-100 pt-4"><p className="text-[10px] font-bold uppercase tracking-[.08em] text-slate-400">Default parameters</p><code className="mt-2 block text-[11px] text-slate-600">{Object.entries(definition.defaultConfig).filter(([key])=>key!=="type").map(([key,value])=>`${key}: ${value}`).join(" · ")}</code></div></article>)}</div>
+      <div className="mt-6 rounded-2xl border border-teal-200 bg-teal-50 p-5 text-sm leading-6 text-teal-950"><strong>Shared research controls.</strong> Every strategy supports the same sizing, portfolio, risk, cost, slippage, comparison, and export workflow. Descriptions explain mechanics and do not claim profitability.</div>
     </div>
-  );
+  </main>;
 }

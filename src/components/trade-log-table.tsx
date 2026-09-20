@@ -1,137 +1,24 @@
 import { Trade } from "@/lib/types";
 import { formatCurrency, formatDate, formatPct } from "@/lib/format";
 
-function holdingDays(entryDate: string, exitDate: string): number {
-  const ms = new Date(exitDate + "T00:00:00Z").getTime() - new Date(entryDate + "T00:00:00Z").getTime();
-  return Math.round(ms / 86_400_000);
-}
-
-const EXIT_REASON_LABELS: Record<Trade["reason"], string> = {
-  STRATEGY_EXIT: "Strategy Exit",
-  STOP_LOSS: "Stop Loss",
-  TARGET: "Target",
-  TRAILING_STOP: "Trailing Stop",
-  PERIOD_END: "Period End",
-  SESSION_END: "Session End",
+const DAY = 86_400_000;
+const holdingDays = (entry: string, exit: string) => Math.round((Date.parse(`${exit}T00:00:00Z`) - Date.parse(`${entry}T00:00:00Z`)) / DAY);
+const REASONS: Record<Trade["reason"], { label: string; style: string }> = {
+  STRATEGY_EXIT: { label: "Strategy exit", style: "border-slate-200 bg-slate-50 text-slate-600" },
+  STOP_LOSS: { label: "Stop loss", style: "border-red-200 bg-red-50 text-red-700" },
+  TARGET: { label: "Target", style: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+  TRAILING_STOP: { label: "Trailing stop", style: "border-amber-200 bg-amber-50 text-amber-700" },
+  PERIOD_END: { label: "Period end", style: "border-slate-200 bg-slate-50 text-slate-500" },
+  SESSION_END: { label: "Session end", style: "border-blue-200 bg-blue-50 text-blue-700" },
 };
-
-const EXIT_REASON_STYLES: Record<Trade["reason"], string> = {
-  STRATEGY_EXIT: "text-slate-500",
-  STOP_LOSS: "text-red-600 font-medium",
-  TARGET: "text-emerald-600 font-medium",
-  TRAILING_STOP: "text-amber-600 font-medium",
-  PERIOD_END: "text-slate-400",
-  SESSION_END: "text-slate-500",
-};
-
-function exitReasonLabel(reason: Trade["reason"]): string {
-  return EXIT_REASON_LABELS[reason];
-}
-
-const SIZING_MODE_LABELS: Record<Trade["positionSizingMode"], string> = {
-  CAPITAL_PERCENT: "Capital %",
-  FIXED_QUANTITY: "Fixed Qty",
-  RISK_PERCENT: "Risk %",
-};
+const SIZING: Record<Trade["positionSizingMode"], string> = { CAPITAL_PERCENT: "Capital %", FIXED_QUANTITY: "Fixed qty", RISK_PERCENT: "Risk %" };
 
 export function TradeLogTable({ trades }: { trades: Trade[] }) {
   return (
-    <div className="qe-card p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-900">Trade Log</h2>
-        <span className="text-xs text-slate-400">{trades.length} trades</span>
-      </div>
-
-      {trades.length === 0 ? (
-        <p className="text-sm text-slate-400">
-          No trades were triggered for this strategy and date range.
-        </p>
-      ) : (
-        <div className="max-h-96 overflow-x-auto overflow-y-auto">
-          <table className="w-full min-w-[1140px] text-xs">
-            <thead className="sticky top-0 bg-white">
-              <tr className="border-b border-slate-200 text-left font-medium text-slate-500">
-                <th className="px-2 py-2">#</th>
-                <th className="px-2 py-2">Instrument</th>
-                <th className="px-2 py-2">Entry date</th>
-                <th className="px-2 py-2 text-right">Entry price</th>
-                <th className="px-2 py-2">Exit date</th>
-                <th className="px-2 py-2 text-right">Exit price</th>
-                <th className="px-2 py-2 text-right">Qty</th>
-                <th className="px-2 py-2 text-right">Size (₹)</th>
-                <th className="px-2 py-2">Sizing</th>
-                <th className="px-2 py-2 text-right">Gross P&L</th>
-                <th className="px-2 py-2 text-right">Charges</th>
-                <th className="px-2 py-2 text-right">Net P&L</th>
-                <th className="px-2 py-2 text-right">Return %</th>
-                <th className="px-2 py-2 text-right">Holding</th>
-                <th className="px-2 py-2">Entry reason</th>
-                <th className="px-2 py-2">Exit reason</th>
-              </tr>
-            </thead>
-            <tbody>
-              {trades.map((t) => {
-                const netPnl = t.pnl;
-                return (
-                  <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="px-2 py-2 text-slate-500">{t.id}</td>
-                    <td className="px-2 py-2 font-medium text-slate-700">{t.symbol}</td>
-                    <td className="px-2 py-2 text-slate-700">{formatDate(t.entryDate)}</td>
-                    <td className="qe-figure px-2 py-2 text-right text-slate-700">
-                      {formatCurrency(t.entryPrice, 2)}
-                    </td>
-                    <td className="px-2 py-2 text-slate-700">{formatDate(t.exitDate)}</td>
-                    <td className="qe-figure px-2 py-2 text-right text-slate-700">
-                      {formatCurrency(t.exitPrice, 2)}
-                    </td>
-                    <td className="qe-figure px-2 py-2 text-right text-slate-700">{t.quantity}</td>
-                    <td className="qe-figure px-2 py-2 text-right text-slate-500">
-                      {formatCurrency(t.positionSizeValue)}
-                    </td>
-                    <td className="px-2 py-2 text-slate-400">
-                      {SIZING_MODE_LABELS[t.positionSizingMode]}
-                    </td>
-                    <td
-                      className={`qe-figure px-2 py-2 text-right font-medium ${
-                        t.pnl >= 0 ? "text-emerald-600" : "text-red-600"
-                      }`}
-                    >
-                      {formatCurrency(t.grossPnl ?? t.pnl)}
-                    </td>
-                    <td title={t.costBreakdown ? Object.entries(t.costBreakdown).map(([k,v])=>`${k}: ₹${v.toFixed(2)}`).join("; ") : "Zero costs"} className="qe-figure px-2 py-2 text-right text-slate-400">
-                      {t.charges !== undefined ? formatCurrency(t.charges, 2) : "—"}
-                    </td>
-                    <td
-                      className={`qe-figure px-2 py-2 text-right font-medium ${
-                        netPnl >= 0 ? "text-emerald-600" : "text-red-600"
-                      }`}
-                    >
-                      {formatCurrency(netPnl)}
-                    </td>
-                    <td
-                      className={`qe-figure px-2 py-2 text-right font-medium ${
-                        t.pnl >= 0 ? "text-emerald-600" : "text-red-600"
-                      }`}
-                    >
-                      {formatPct(t.pnlPct)}
-                    </td>
-                    <td className="qe-figure px-2 py-2 text-right text-slate-500">
-                      {holdingDays(t.entryDate, t.exitDate)}d
-                    </td>
-                    <td className="px-2 py-2 text-slate-400">{t.entryReason}</td>
-                    <td className={`px-2 py-2 ${EXIT_REASON_STYLES[t.reason]}`}>
-                      {exitReasonLabel(t.reason)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <p className="mt-3 text-xs text-slate-400">
-        Gross P&L uses execution prices after slippage. Net P&L subtracts entry and exit charges once.
-      </p>
-    </div>
+    <section className="qe-card overflow-hidden" aria-labelledby="trade-log-title">
+      <div className="flex items-end justify-between gap-4 border-b border-slate-100 px-5 py-5 sm:px-6"><div><p className="qe-eyebrow">Execution ledger</p><h2 id="trade-log-title" className="qe-title mt-1 text-lg">Trade log</h2><p className="mt-1 text-xs text-slate-500">Actual simulated fills, sizing, costs, and exit reasons.</p></div><span className="qe-pill whitespace-nowrap">{trades.length} trades</span></div>
+      {!trades.length ? <div className="m-5 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center sm:m-6"><p className="font-semibold text-slate-700">No executable trades</p><p className="mt-2 text-sm leading-6 text-slate-500">The strategy produced no completed positions for this period, or signals could not satisfy the selected sizing and risk constraints.</p></div> : <div className="qe-scrollbar max-h-[34rem] overflow-auto"><table className="w-full min-w-[1260px] border-collapse text-xs"><thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur"><tr className="border-b border-slate-200 text-left text-[10px] font-bold uppercase tracking-[.06em] text-slate-500"><th className="px-4 py-3">#</th><th className="px-3 py-3">Instrument</th><th className="px-3 py-3">Entry</th><th className="px-3 py-3 text-right">Entry price</th><th className="px-3 py-3">Exit</th><th className="px-3 py-3 text-right">Exit price</th><th className="px-3 py-3 text-right">Qty</th><th className="px-3 py-3 text-right">Position</th><th className="px-3 py-3">Sizing</th><th className="px-3 py-3 text-right">Gross P&L</th><th className="px-3 py-3 text-right">Charges</th><th className="px-3 py-3 text-right">Net P&L</th><th className="px-3 py-3 text-right">Return</th><th className="px-3 py-3 text-right">Held</th><th className="px-3 py-3">Exit reason</th></tr></thead><tbody>{trades.map((trade) => {const positive = trade.pnl >= 0; const reason = REASONS[trade.reason]; return <tr key={trade.id} className="border-b border-slate-100 bg-white transition hover:bg-slate-50"><td className="px-4 py-3 text-slate-400">{trade.id}</td><td className="px-3 py-3 font-bold text-slate-700">{trade.symbol}</td><td className="px-3 py-3 text-slate-600">{formatDate(trade.entryDate)}</td><td className="qe-figure px-3 py-3 text-right">{formatCurrency(trade.entryPrice,2)}</td><td className="px-3 py-3 text-slate-600">{formatDate(trade.exitDate)}</td><td className="qe-figure px-3 py-3 text-right">{formatCurrency(trade.exitPrice,2)}</td><td className="qe-figure px-3 py-3 text-right">{trade.quantity}</td><td className="qe-figure px-3 py-3 text-right text-slate-600">{formatCurrency(trade.positionSizeValue)}</td><td className="px-3 py-3 text-slate-500">{SIZING[trade.positionSizingMode]}</td><td className={`qe-figure px-3 py-3 text-right font-semibold ${positive ? "qe-positive" : "qe-negative"}`}>{formatCurrency(trade.grossPnl ?? trade.pnl)}</td><td title={trade.costBreakdown ? Object.entries(trade.costBreakdown).map(([key,value]) => `${key}: ₹${value.toFixed(2)}`).join("; ") : "Zero costs"} className="qe-figure px-3 py-3 text-right text-slate-500">{formatCurrency(trade.charges ?? 0,2)}</td><td className={`qe-figure px-3 py-3 text-right font-bold ${positive ? "qe-positive" : "qe-negative"}`}>{formatCurrency(trade.pnl)}</td><td className={`qe-figure px-3 py-3 text-right font-semibold ${positive ? "qe-positive" : "qe-negative"}`}>{formatPct(trade.pnlPct)}</td><td className="qe-figure px-3 py-3 text-right text-slate-500">{holdingDays(trade.entryDate,trade.exitDate)}d</td><td className="px-3 py-3"><span className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-bold ${reason.style}`}>{reason.label}</span></td></tr>})}</tbody></table></div>}
+      <div className="border-t border-slate-100 bg-slate-50 px-5 py-3 text-[11px] leading-5 text-slate-500 sm:px-6">Swipe or scroll horizontally to review the full ledger. Gross P&L uses execution prices after slippage; net P&L subtracts entry and exit charges once.</div>
+    </section>
   );
 }

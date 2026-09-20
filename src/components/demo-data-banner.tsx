@@ -1,6 +1,6 @@
-export function DemoDataBanner() {
+export function DemoDataBanner({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+    <div className={`flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 ${compact ? "mb-0" : ""}`}>
       <svg viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600">
         <path
           fillRule="evenodd"
@@ -8,10 +8,8 @@ export function DemoDataBanner() {
           clipRule="evenodd"
         />
       </svg>
-      <p className="text-sm text-amber-900">
-        <span className="font-semibold">Demo Mode</span> — Results use synthetic market data and
-        are for testing the platform only. They do not represent actual historical market
-        performance.
+      <p className="text-sm leading-5 text-amber-950">
+        <span className="font-bold">Demo / synthetic data</span> · Results test the research workflow and do not represent actual historical market performance.
       </p>
     </div>
   );

@@ -20,7 +20,7 @@ export function MarketSection({ symbols, settings, onChange }: Props) {
 
   return (
 
-    <ConfigSection title="Market">
+    <ConfigSection title="">
 
       <Field label="Data source"><select className="input" value={settings.providerId} onChange={e => onChange({...settings, providerId:e.target.value, symbol:e.target.value==='synthetic'?'DEMO-NIFTY50':'', exchange:'NSE'})}><option value="synthetic">DEMO / SYNTHETIC</option><option value="kite">REAL HISTORICAL DATA — Kite Connect</option></select></Field>
 

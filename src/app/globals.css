@@ -1,89 +1,113 @@
 @import "tailwindcss";
 
-/*
-  Quant Edge brand tokens.
-  Deep navy chrome (header/nav) + a slate content surface + a teal/cyan
-  accent for interactive elements and data highlights. Chosen to read as
-  a serious quant/trading tool without copying any specific existing
-  product's palette.
-*/
 :root {
-  --background: #f1f5f9;
-  --foreground: #0f172a;
-  --qe-navy-950: #0a0f1e;
-  --qe-navy-900: #0f172a;
-  --qe-navy-800: #141e33;
-  --qe-accent: #14b8a6;
-  --qe-accent-dark: #0d9488;
+  --background: #f4f6f8;
+  --foreground: #12202f;
+  --qe-ink: #12202f;
+  --qe-ink-soft: #536171;
+  --qe-navy-950: #071521;
+  --qe-navy-900: #0b1c2c;
+  --qe-navy-800: #123047;
+  --qe-accent: #19b5a5;
+  --qe-accent-dark: #087f76;
+  --qe-accent-soft: #e5f7f4;
+  --qe-line: #dce3e8;
+  --qe-surface: #ffffff;
+  --qe-positive: #087f5b;
+  --qe-negative: #c73e4d;
+  --qe-warning: #a56705;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
+  min-width: 320px;
   overflow-wrap: anywhere;
-  background: var(--background);
+  background:
+    radial-gradient(circle at 92% -10%, rgba(25, 181, 165, 0.08), transparent 26rem),
+    var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
 }
-
-:focus-visible { outline: 2px solid #0d9488; outline-offset: 3px; }
+::selection { background: #bcebe5; color: #071521; }
+:focus-visible { outline: 3px solid rgba(25, 181, 165, 0.42); outline-offset: 3px; }
 button, summary { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
+button, input, select { min-height: 42px; }
 
 @layer components {
-  .input {
-    width: 100%;
-    border-radius: 0.5rem;
-    border: 1px solid #cbd5e1;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    color: #0f172a;
-    outline: none;
-    background: white;
-  }
-  .input:focus {
-    border-color: var(--qe-accent);
-    box-shadow: 0 0 0 1px var(--qe-accent);
-  }
-  .input:disabled {
-    background: #f1f5f9;
-    color: #94a3b8;
-    cursor: not-allowed;
-  }
-
+  .qe-container { width: min(100% - 2rem, 88rem); margin-inline: auto; }
   .qe-card {
-    border-radius: 0.75rem;
-    border: 1px solid #e2e8f0;
-    background: white;
+    border: 1px solid var(--qe-line);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--qe-surface) 97%, transparent);
+    box-shadow: 0 1px 2px rgba(7, 21, 33, 0.03), 0 12px 32px rgba(7, 21, 33, 0.035);
   }
+  .qe-panel { border: 1px solid var(--qe-line); border-radius: 0.875rem; background: #fff; }
+  .qe-eyebrow, .qe-section-label {
+    font-size: 0.7rem; font-weight: 750; letter-spacing: 0.11em; line-height: 1.35;
+    text-transform: uppercase; color: #657485;
+  }
+  .qe-title { color: var(--qe-ink); font-weight: 720; letter-spacing: -0.025em; }
+  .qe-subtle { color: var(--qe-ink-soft); }
+  .qe-figure { font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.02em; }
+  .qe-positive { color: var(--qe-positive); }
+  .qe-negative { color: var(--qe-negative); }
+  .qe-btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    border-radius: 0.7rem; background: var(--qe-accent-dark); padding: 0.65rem 1rem;
+    color: white; font-size: 0.875rem; font-weight: 700;
+    box-shadow: 0 5px 14px rgba(8, 127, 118, 0.18); transition: 150ms ease;
+  }
+  .qe-btn-primary:hover { background: #066d66; transform: translateY(-1px); }
+  .qe-btn-primary:disabled { opacity: 0.55; transform: none; box-shadow: none; }
+  .qe-btn-secondary {
+    display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 0.45rem;
+    border: 1px solid #cfd8df; border-radius: 0.7rem; background: #fff; padding: 0.55rem 0.85rem;
+    color: #304153; font-size: 0.78rem; font-weight: 700; transition: 150ms ease;
+  }
+  .qe-btn-secondary:hover { border-color: #9babb8; background: #f8fafb; }
+  .qe-pill {
+    display: inline-flex; min-height: 1.7rem; align-items: center; gap: 0.35rem; border-radius: 999px;
+    border: 1px solid #d8e0e6; background: #f8fafb; padding: 0.2rem 0.55rem;
+    color: #536171; font-size: 0.68rem; font-weight: 750; letter-spacing: 0.03em;
+  }
+  .qe-pill-demo { border-color: #efd593; background: #fff8df; color: #88590b; }
+  .qe-pill-live { border-color: #a7ded6; background: #e9f8f5; color: #08675f; }
+  .qe-badge-soon { display: inline-flex; align-items: center; border-radius: 999px; background: #f1f5f9; padding: .2rem .5rem; color: #64748b; font-size: .65rem; font-weight: 700; }
+  .input {
+    width: 100%; min-height: 42px; border-radius: 0.65rem; border: 1px solid #cfd8df;
+    padding: 0.55rem 0.75rem; background: white; color: #172536; font-size: 0.82rem;
+    outline: none; transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .input:hover { border-color: #9eafbc; }
+  .input:focus { border-color: var(--qe-accent-dark); box-shadow: 0 0 0 3px rgba(25, 181, 165, 0.12); }
+  .input:disabled { cursor: not-allowed; background: #f1f4f6; color: #8b98a5; }
+  .qe-empty {
+    display: flex; min-height: 13rem; flex-direction: column; align-items: center; justify-content: center;
+    border: 1px dashed #c6d1d9; border-radius: 1rem; background: rgba(255,255,255,0.58);
+    padding: 2rem; text-align: center;
+  }
+  .qe-icon-box {
+    display: inline-flex; height: 2.4rem; width: 2.4rem; flex: 0 0 auto; align-items: center;
+    justify-content: center; border-radius: 0.75rem; background: var(--qe-accent-soft); color: var(--qe-accent-dark);
+  }
+  .qe-scrollbar { scrollbar-width: thin; scrollbar-color: #b5c0c9 transparent; }
+}
 
-  .qe-section-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #64748b;
-  }
+@media (max-width: 639px) {
+  .qe-container { width: min(100% - 1.25rem, 88rem); }
+  .qe-card { border-radius: 0.8rem; }
+  button, input, select { min-height: 44px; }
+}
 
-  .qe-figure {
-    font-variant-numeric: tabular-nums;
-  }
-
-  .qe-badge-soon {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 9999px;
-    background: #f1f5f9;
-    color: #64748b;
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    padding: 0.125rem 0.5rem;
-  }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }

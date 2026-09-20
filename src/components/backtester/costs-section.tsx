@@ -5,7 +5,7 @@ import { NumericInput } from './numeric-input';
 const labels: Record<keyof CostModel, string> = { brokeragePct: 'Brokerage (%)', brokerageCap: 'Brokerage cap per order (₹)', sttBuyPct: 'STT buy (%)', sttSellPct: 'STT sell (%)', exchangePct: 'Exchange (%)', sebiPct: 'SEBI (%)', ipftPct: 'IPFT (%)', gstPct: 'GST (%)', stampBuyPct: 'Stamp buy (%)', dpBase: 'DP per stock/day before GST (₹)' };
 export function CostsSection({ settings, onChange }: { settings: BacktestSettings; onChange: (s: BacktestSettings) => void }) {
   const costs = settings.costs ?? { preset: 'ZERO', slippagePct: 0 };
-  return <ConfigSection title="Costs & execution">
+  return <ConfigSection title="">
     <Field label="Cost preset"><select className="input" value={costs.preset} onChange={e => onChange({ ...settings, costs: { ...costs, preset: e.target.value as BrokerPreset, custom: costs.custom ?? ZERO_MODEL } })}>
       {Object.entries(COST_PRESETS).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
     </select></Field>

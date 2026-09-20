@@ -1,4 +1,2 @@
-'use client';
-export default function ErrorPage({retry}:{retry:()=>void}) {
-  return <main className="mx-auto max-w-xl space-y-4 p-8" role="alert"><h1 className="text-xl font-semibold">Unable to display this page</h1><p>Your saved configurations have not been changed. Try loading the page again.</p><button className="rounded bg-teal-700 px-4 py-2 text-white" onClick={()=>retry()}>Try again</button></main>;
-}
+"use client";
+export default function ErrorPage({retry}:{retry:()=>void}) {return <main className="qe-container grid min-h-[65vh] place-items-center py-10" role="alert"><div className="qe-card max-w-lg p-7 text-center"><span className="qe-icon-box mx-auto text-red-700">!</span><h1 className="qe-title mt-4 text-2xl">Unable to display this page</h1><p className="mt-3 text-sm leading-6 text-slate-600">Your saved configurations have not been changed. Reload this view to try again.</p><button className="qe-btn-primary mt-5" onClick={()=>retry()}>Try again</button></div></main>;}

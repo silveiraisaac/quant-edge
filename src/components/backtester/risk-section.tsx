@@ -15,7 +15,7 @@ export function RiskManagementSection({ settings, onChange }: Props) {
   }
 
   return (
-    <ConfigSection title="Risk Management">
+    <ConfigSection title="">
       <RiskControlRow
         label="Stop Loss"
         enabled={risk.stopLossEnabled}
