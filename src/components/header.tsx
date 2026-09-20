@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: "/#results", label: "Reports" },
   { href: "/strategies", label: "Strategies" },
   { href: "/docs", label: "Methodology" },
+  { href: "/about", label: "About" },
 ];
 
 function BrandMark() {
@@ -59,7 +60,7 @@ export function Header() {
 
       {menuOpen && (
         <nav id="mobile-navigation" className="qe-container border-t border-white/10 py-3 lg:hidden" aria-label="Mobile navigation">
-          <div className="grid gap-1 sm:grid-cols-4">
+          <div className="grid gap-1 sm:grid-cols-5">
             {NAV_LINKS.map((link) => <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-3 text-sm font-semibold text-slate-200 hover:bg-white/8">{link.label}</Link>)}
           </div>
         </nav>

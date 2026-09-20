@@ -22,7 +22,8 @@ export function MarketSection({ symbols, settings, onChange }: Props) {
 
     <ConfigSection title="">
 
-      <Field label="Data source"><select className="input" value={settings.providerId} onChange={e => onChange({...settings, providerId:e.target.value, symbol:e.target.value==='synthetic'?'DEMO-NIFTY50':'', exchange:'NSE'})}><option value="synthetic">DEMO / SYNTHETIC</option><option value="kite">REAL HISTORICAL DATA — Kite Connect</option></select></Field>
+      <Field label="Data source"><select className="input" value={settings.providerId} onChange={e => onChange({...settings, providerId:e.target.value, symbol:e.target.value==='synthetic'?'DEMO-NIFTY50':'', exchange:'NSE'})}><option value="synthetic">DEMO DATASET — Synthetic Market Data</option><option value="kite">REAL HISTORICAL DATA — Kite Connect</option></select></Field>
+      {settings.providerId === 'synthetic' && <p className="text-xs leading-5 text-slate-500">Deterministic synthetic candles for demonstrating the engine. They are not actual NSE/BSE history.</p>}
 
       <Field label="Symbol / Instrument">
 

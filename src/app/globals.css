@@ -84,7 +84,7 @@ button:disabled { cursor: not-allowed; }
 button, input, select { min-height: 42px; }
 
 @layer components {
-  .qe-container { width: min(100% - 2rem, 88rem); margin-inline: auto; }
+  .qe-container { width: min(calc(100% - 2rem), 88rem); margin-inline: auto; }
   .qe-card {
     border: 1px solid var(--qe-line);
     border-radius: 1rem;
@@ -196,7 +196,7 @@ html[data-theme="dark"] .text-orange-900 { color: var(--qe-warning); }
 .recharts-tooltip-label, .recharts-legend-item-text { color: var(--qe-ink-soft) !important; }
 
 @media (max-width: 639px) {
-  .qe-container { width: min(100% - 1.25rem, 88rem); }
+  .qe-container { width: min(calc(100% - 1.25rem), 88rem); }
   .qe-card { border-radius: 0.8rem; }
   button, input, select { min-height: 44px; }
 }

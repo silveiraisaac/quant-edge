@@ -9,7 +9,7 @@ export function DemoDataBanner({ compact = false }: { compact?: boolean }) {
         />
       </svg>
       <p className="text-sm leading-5 text-amber-950">
-        <span className="font-bold">Demo / synthetic data</span> · Results test the research workflow and do not represent actual historical market performance.
+        <span className="font-bold">Demo Dataset · Synthetic Market Data</span> · Demonstrates Quant Edge’s backtesting workflow and does not represent actual historical NSE or BSE market performance.
       </p>
     </div>
   );

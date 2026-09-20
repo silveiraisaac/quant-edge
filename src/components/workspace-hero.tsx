@@ -4,7 +4,7 @@ const CAPABILITIES = [
   { value: "8", label: "tested strategies" },
   { value: "Daily", label: "execution model" },
   { value: "₹ costs", label: "Indian fee detail" },
-  { value: "Next open", label: "signal execution" },
+  { value: "99", label: "automated tests" },
 ];
 
 export function WorkspaceHero() {
@@ -14,15 +14,16 @@ export function WorkspaceHero() {
       <div className="qe-container relative grid gap-8 py-10 lg:grid-cols-[1.25fr_.75fr] lg:items-end lg:py-14">
         <div className="max-w-3xl">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="qe-pill border-white/15 bg-white/8 text-slate-200">Indian equities</span>
-            <span className="qe-pill border-amber-300/20 bg-amber-300/10 text-amber-200">Demo data active</span>
+            <span className="qe-pill border-white/15 bg-white/8 text-slate-200">v1.0 · Portfolio Release</span>
+            <span className="qe-pill border-amber-300/20 bg-amber-300/10 text-amber-200">Synthetic demo data</span>
           </div>
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[var(--qe-accent)]">Quantitative research workspace</p>
-          <h1 className="max-w-2xl text-3xl font-bold leading-tight tracking-[-0.04em] sm:text-4xl lg:text-[2.8rem]">Research. Backtest. Understand.</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Evaluate long-only strategies with transparent execution, Indian trading-cost estimates, risk analytics, and reproducible data provenance.</p>
+          <h1 className="max-w-3xl text-3xl font-bold leading-tight tracking-[-0.04em] sm:text-4xl lg:text-[2.8rem]">Quantitative strategy backtesting, made transparent.</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">Configure and compare systematic strategies, inspect causal execution and risk, model Indian transaction costs, and export reproducible reports. Built as an independent software and quantitative-finance project by Isaac Silveira.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <a href="#builder" className="qe-btn-primary bg-[var(--qe-accent)] text-[var(--qe-navy-950)] hover:bg-[#4fd0c2]">Build a backtest <span aria-hidden="true">→</span></a>
             <Link href="/docs" className="qe-btn-secondary border-white/15 bg-white/7 text-white hover:bg-white/12">Read methodology</Link>
+            <Link href="/about" className="qe-btn-secondary border-white/15 bg-white/7 text-white hover:bg-white/12">About the project</Link>
           </div>
         </div>
         <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-white/10 bg-white/5 backdrop-blur">
