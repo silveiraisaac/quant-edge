@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/header";
 
+const themeScript = `(function(){try{var value=localStorage.getItem('quant-edge-theme');document.documentElement.dataset.theme=value==='light'?'light':'dark'}catch(_){document.documentElement.dataset.theme='dark'}})()`;
+
 export const metadata: Metadata = {
   title: "Quant Edge — Quantitative Strategy Research",
   description:
@@ -10,7 +12,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full antialiased" data-scroll-behavior="smooth">
+    <html lang="en" className="h-full antialiased" data-theme="dark" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body className="flex min-h-full flex-col">
         <Header />
         <div className="flex-1">{children}</div>

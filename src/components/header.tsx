@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
   { href: "/", label: "Research" },
@@ -47,6 +48,7 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <Link href="/#builder" className="hidden rounded-lg bg-[var(--qe-accent)] px-3.5 py-2 text-xs font-bold text-[var(--qe-navy-950)] transition hover:bg-[#4fd0c2] sm:inline-flex">New backtest</Link>
+          <ThemeToggle />
           <button type="button" onClick={() => setMenuOpen((open) => !open)} aria-label="Toggle navigation" aria-expanded={menuOpen} aria-controls="mobile-navigation" className="grid h-10 w-10 place-items-center rounded-lg text-slate-200 hover:bg-white/10 lg:hidden">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               {menuOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}

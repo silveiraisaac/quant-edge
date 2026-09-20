@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { ConfigPanel } from "@/components/backtester/config-panel";
 import { ComparisonPanel } from "@/components/comparison-panel";
 import { DemoDataBanner } from "@/components/demo-data-banner";
-import { ResultActions } from "@/components/result-actions";
 import { ResultsDashboard } from "@/components/results-dashboard";
 import { ResultsPlaceholder } from "@/components/results-placeholder";
 import { SavedWorkspace } from "@/components/saved-workspace";
@@ -108,8 +107,8 @@ export default function HomePage() {
             <div id="results" className="min-w-0 scroll-mt-24" aria-live="polite" aria-busy={isRunning}>
               {error && <div role="alert" className="mb-5 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><span className="mt-0.5 font-bold" aria-hidden="true">!</span><div><p className="font-semibold">The backtest could not run</p><p className="mt-1">{error}</p><p className="mt-1 text-xs text-red-700">Review the highlighted configuration and try again. Your saved work is unchanged.</p></div></div>}
               {!result && !error && <ResultsPlaceholder isRunning={isRunning} />}
-              {result && <><ResultActions result={result} disabled={comparisons.length >= getEntitlements("FREE").maxComparisonRuns} onCompare={() => setComparisons((previous) => previous.length >= getEntitlements("FREE").maxComparisonRuns ? previous : [...previous, { id: crypto.randomUUID(), name: `${result.settings.strategy.type} (${previous.length + 1})`, result }])} /><ResultsDashboard result={result} /></>}
-              <div className="mt-6"><ComparisonPanel runs={comparisons} onRemove={(id) => setComparisons((previous) => previous.filter((run) => run.id !== id))} /></div>
+              {result && <ResultsDashboard result={result} />}
+              <div className="mt-6"><ComparisonPanel runs={comparisons} currentResult={result} comparisonLimit={getEntitlements("FREE").maxComparisonRuns} onCompare={() => result && setComparisons((previous) => previous.length >= getEntitlements("FREE").maxComparisonRuns ? previous : [...previous, { id: crypto.randomUUID(), name: `${result.settings.strategy.type} (${previous.length + 1})`, result }])} onRemove={(id) => setComparisons((previous) => previous.filter((run) => run.id !== id))} /></div>
               <div className="mt-6"><SavedWorkspace result={result} onOpen={(savedSettings) => { setSettings(savedSettings); setResult(null); setError(null); document.getElementById("builder")?.scrollIntoView({ behavior: "smooth" }); }} /></div>
             </div>
           </div>

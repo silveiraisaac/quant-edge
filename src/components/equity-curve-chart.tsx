@@ -19,12 +19,12 @@ export function EquityCurveChart({ data }: { data: EquityPoint[] }) {
       <div className="h-[300px] w-full px-2 pb-4 pt-5 sm:h-[370px] sm:px-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
-            <defs><linearGradient id="equityFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#19b5a5" stopOpacity={0.32} /><stop offset="100%" stopColor="#19b5a5" stopOpacity={0.015} /></linearGradient></defs>
-            <CartesianGrid vertical={false} stroke="#e8edf1" />
-            <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "#6b7987" }} tickLine={false} axisLine={false} minTickGap={55} dy={8} />
-            <YAxis tickFormatter={compactInr} tick={{ fontSize: 10, fill: "#6b7987" }} tickLine={false} axisLine={false} width={70} domain={["auto", "auto"]} />
-            <Tooltip formatter={(value) => [formatCurrency(Number(value)), "Net equity"]} labelFormatter={(label) => formatDate(String(label))} contentStyle={{ border: "1px solid #dce3e8", borderRadius: "10px", boxShadow: "0 10px 30px rgba(7,21,33,.1)", fontSize: "12px" }} labelStyle={{ color: "#536171", marginBottom: "5px" }} />
-            <Area type="monotone" dataKey="equity" stroke="#087f76" strokeWidth={2.25} fill="url(#equityFill)" dot={false} activeDot={{ r: 4, fill: "#087f76", stroke: "#fff", strokeWidth: 2 }} isAnimationActive={false} />
+            <defs><linearGradient id="equityFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--qe-chart-equity)" stopOpacity={0.32} /><stop offset="100%" stopColor="var(--qe-chart-equity)" stopOpacity={0.015} /></linearGradient></defs>
+            <CartesianGrid vertical={false} stroke="var(--qe-chart-grid)" />
+            <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 10, fill: "var(--qe-chart-tick)" }} tickLine={false} axisLine={false} minTickGap={55} dy={8} />
+            <YAxis tickFormatter={compactInr} tick={{ fontSize: 10, fill: "var(--qe-chart-tick)" }} tickLine={false} axisLine={false} width={70} domain={["auto", "auto"]} />
+            <Tooltip formatter={(value) => [formatCurrency(Number(value)), "Net equity"]} labelFormatter={(label) => formatDate(String(label))} contentStyle={{ background: "var(--qe-chart-tooltip)", border: "1px solid var(--qe-line)", color: "var(--qe-ink)", borderRadius: "10px", boxShadow: "0 10px 30px rgba(0,0,0,.18)", fontSize: "12px" }} labelStyle={{ color: "var(--qe-ink-soft)", marginBottom: "5px" }} />
+            <Area type="monotone" dataKey="equity" stroke="var(--qe-chart-equity)" strokeWidth={2.25} fill="url(#equityFill)" dot={false} activeDot={{ r: 4, fill: "var(--qe-chart-equity)", stroke: "var(--qe-surface)", strokeWidth: 2 }} isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>

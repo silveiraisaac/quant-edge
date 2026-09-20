@@ -20,7 +20,7 @@ export function ResultsDashboard({ result }: { result: BacktestResult }) {
       <DrawdownChart data={result.drawdownCurve} summary={result.summary} />
       <MonthlyReturnsTable data={result.monthlyReturns} />
       <CostAnalysis result={result} />
-      <TradeLogTable trades={result.trades} />
+      <TradeLogTable result={result} />
       <ReportDetails result={result} />
     </div>
   );
