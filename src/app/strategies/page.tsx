@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { STRATEGY_DEFINITIONS } from "@/lib/strategies";
 
-export const metadata = { title: "Strategies — Quant Edge" };
+export const metadata = { title: "Strategies", description:"Eight deterministic long-only strategy models available in the Quant Edge portfolio project.", alternates:{canonical:"/strategies"} };
 const categoryStyle: Record<string,string> = {"Trend Following":"border-blue-200 bg-blue-50 text-blue-700",Momentum:"border-violet-200 bg-violet-50 text-violet-700","Mean Reversion":"border-amber-200 bg-amber-50 text-amber-700",Breakout:"border-teal-200 bg-teal-50 text-teal-700"};
 
 export default function StrategiesPage() {

@@ -1,16 +1,121 @@
 # Quant Edge
 
-Indian cash-equity strategy backtesting and performance analysis, built on the
-existing Next.js 16 / React 19 / TypeScript application. Long-only research;
-no live order execution. The navy/teal interface and prior sizing/risk architecture
-are retained.
+Quant Edge is an independent quantitative strategy backtesting and performance-analysis project built by **Isaac Silveira**. It demonstrates systematic strategy evaluation, causal execution modelling, risk controls, Indian cash-equity transaction-cost assumptions, performance analytics and production-minded financial software engineering.
 
-**Backtested performance does not guarantee future results. Demo/synthetic
-results are not historical market performance.**
+**Live project:** [https://quant-edge-gray.vercel.app/](https://quant-edge-gray.vercel.app/)
 
-## Setup
+> **Demo data disclosure:** Quant Edge v1.0 uses deterministic synthetic market data. Results are hypothetical and do not represent actual historical NSE or BSE market performance. Quant Edge does not provide investment advice, recommendations, brokerage, live trading or money management.
 
-Use Node.js 24 LTS and pnpm 11.25.0. From the repository root:
+## Quant Edge v1.0 — Portfolio Release
+
+The portfolio release lets a visitor:
+
+- Configure a strategy, starting capital, position sizing and portfolio constraints.
+- Apply stop-loss, profit-target and trailing-stop controls.
+- Run deterministic daily-bar simulations with signals executed at the next open.
+- Inspect net performance, risk, drawdowns, monthly returns, costs and trades.
+- Compare up to four completed runs.
+- Save summaries locally in the browser and export trade CSV or summary JSON.
+- Review complete methodology, limitations, provenance and risk disclosures in the interface.
+
+This is a portfolio project rather than a commercial SaaS or real-money trading product.
+
+## Portfolio Highlights
+
+- Deterministic backtesting engine with causal, no-look-ahead signal execution
+- Conservative stop-loss, target, gap and trailing-stop mechanics
+- Capital percentage, fixed quantity and fixed-stop risk-based position sizing
+- Concurrent-lot and portfolio allocation constraints
+- Indian transaction-cost modelling with component-level auditability
+- Net-equity analytics, drawdown analysis and monthly returns
+- Strategy comparison, saved-run workflows and hardened CSV/JSON exports
+- Data-provider abstraction, runtime validation and reproducible provenance hashes
+- Responsive dark/light fintech interface
+- 99 automated financial, strategy, execution, API, adapter and authorization tests
+
+## Strategies
+
+Quant Edge implements eight verified long-only strategy models:
+
+1. SMA Crossover
+2. RSI Mean Reversion
+3. EMA Crossover
+4. RSI Momentum
+5. Donchian Breakout
+6. Rate-of-Change Momentum
+7. Bollinger Mean Reversion
+8. MACD Trend
+
+Indicator warmups and parameter relationships are validated. Signals use information available through the current close and execute at the next bar open. The final open position is liquidated at the last close for reporting.
+
+## Risk and execution modelling
+
+The engine supports configurable capital; capital-percentage, fixed-quantity and risk-percentage sizing; maximum concurrent positions and allocation limits; fixed stops; profit targets; and trailing stops. It handles same-bar stop/target ambiguity conservatively, fills gaps at the available open, keeps protective levels per lot, and accounts explicitly for cash, invested value and marked-to-market equity.
+
+Risk-percentage sizing uses the configured fixed-stop distance. Gaps, slippage and charges can cause losses beyond that nominal risk budget.
+
+## Indian transaction-cost assumptions
+
+Presets include Zero Costs, Zerodha Equity Intraday, Zerodha Equity Delivery and Custom Costs. The model separates brokerage, STT, exchange charges, SEBI charges, IPFT, stamp duty, GST, DP charges and slippage.
+
+Current published rates are applied as modelling assumptions over the selected range. They are not guaranteed broker invoices, personalised tax calculations or reconstructed historical tariff schedules. Contract-note aggregation, broker-specific exceptions and special settlement cases may differ.
+
+Reference: [Zerodha charges](https://zerodha.com/charges).
+
+## Performance analytics
+
+Reports include starting and ending capital, gross/net P&L, total return, calendar CAGR, volatility, Sharpe and Sortino ratios, maximum drawdown and recovery, monthly returns, win/loss statistics, profit factor, risk/reward, expectancy, holding period, exposure, turnover, costs and slippage impact.
+
+Undefined ratios are displayed as `N/A`. Risk metrics use supplied daily observations and 252-session annualisation; missing sessions are never invented.
+
+## Architecture
+
+```text
+DataProvider
+  → HistoricalDataService (normalisation, validation, provenance)
+  → BacktestEngine (signals, execution, positions and cash)
+  → PerformanceCalculator
+  → validated Next.js API
+  → React reports, comparison, saves and exports
+```
+
+Backtests run on the server. Provider and optional account modules are server-only. Shared TypeScript contracts isolate the engine from data-source implementations. Signal logic, execution, costs and analytics remain separate and testable.
+
+The stack is Next.js 16, React 19, TypeScript 5, Tailwind CSS 4 and Recharts 3. Node’s test runner drives the regression suite. Optional cloud saves use Supabase Auth and PostgreSQL row-level security when configured.
+
+## Demo dataset and provenance
+
+The default provider generates deterministic seeded synthetic OHLCV candles. The same inputs reproduce the same dataset and result. The sequence restarts at the selected start date, skips weekends and does not apply an NSE/BSE holiday calendar.
+
+Every report identifies synthetic data and records provider, instrument, requested/available dates, timeframe, bar count, retrieval time, adjustment policy, engine/cost versions and a SHA-256 dataset fingerprint. Synthetic instrument names are demonstrations rather than tradable securities or indices.
+
+The repository contains an isolated Kite historical-data adapter from earlier engineering work, but the v1.0 portfolio release intentionally does not configure a brokerage connection or present real market data. Failed real-provider calls never fall back silently to demo data.
+
+## Persistence and privacy
+
+Browser-local history stores named settings, summaries and provenance for up to 100 runs. It does not store candle archives. Local records are visible to anyone using the same browser profile.
+
+Optional Supabase email/password accounts can provide owner-scoped cloud saves when the operator configures `SUPABASE_URL`, `SUPABASE_ANON_KEY`, Auth and the included migration. Access tokens stay in HTTP-only, SameSite=Strict cookies and expire after at most one hour. The default portfolio experience does not require an account.
+
+No product analytics or advertising SDK is included. The in-app Privacy Policy describes browser, server, hosting and optional cloud processing.
+
+## Known limitations
+
+- Synthetic demonstration data rather than actual NSE/BSE history
+- Daily bars, long-only positions and one instrument per backtest
+- No live data, brokerage connection or trade execution
+- No leverage, short selling, options or multi-instrument portfolio backtesting
+- Simplified fills, liquidity, market impact and order acceptance
+- No independent split, dividend, merger or demerger adjustment pipeline
+- No exchange-holiday filtering for the synthetic generator
+- Cost and slippage values are modelling assumptions
+- No guarantee that hypothetical results resemble historical or future live performance
+
+Detailed execution and metric definitions are available at `/docs`; Terms, Privacy, Financial Disclaimer and Risk Disclosure are linked from the application footer.
+
+## Local development
+
+Requirements: Node.js 24 or newer and pnpm 11.25.0.
 
 ```sh
 corepack enable
@@ -19,224 +124,22 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-If Corepack is absent, install pnpm using the official package registry:
-`npm install -g pnpm@11.25.0`. Demo operation needs no environment variables.
-Copy `.env.example` to `.env.local` only when configuring external services.
-Never commit credentials. No secrets use `NEXT_PUBLIC_`.
+Demo operation requires no environment variables. Copy `.env.example` to `.env.local` only when deliberately configuring an external service. Never commit credentials, and never expose them through `NEXT_PUBLIC_` variables.
+
+## Validation
 
 ```sh
-pnpm test        # deterministic financial, adapter, API and authorization tests
-pnpm typecheck   # Next route type generation plus strict TypeScript
-pnpm lint
-pnpm build
-pnpm start
-pnpm check       # all of the above verification, fails at the first failed check
+pnpm test        # 99 deterministic regression and boundary tests
+pnpm typecheck   # Next.js route generation plus strict TypeScript
+pnpm lint        # ESLint
+pnpm build       # production build
+pnpm check       # complete validation sequence
 ```
 
-Tests use Node's test runner plus the existing TypeScript compiler for module
-loading; no trading data or external service credentials are needed.
+The financial baselines cover deterministic demo outcomes, costs, cash reconciliation, causal execution, indicators, strategies, drawdowns, risk metrics, comparison and exports. Adapter and API tests verify invalid-data rejection, secret boundaries, authorization, ownership and error handling.
 
-## Architecture
+## Project status
 
-`DataProvider → historicalData (validation + provenance) → BacktestEngine →
-PerformanceCalculator → validated Next API → existing React reports`.
+**Quant Edge v1.0 is a portfolio project.** The release is complete as a public demonstration of software engineering and quantitative-finance work. Market-data licensing, real brokerage connectivity, live execution, payments and subscriptions are intentionally outside its scope.
 
-Backtests execute on the server. Providers and account modules import
-`server-only`. `types.ts` remains the shared domain contract. Signal calculations
-are separate from execution, cost presets from charge arithmetic, and analytics
-from trading decisions. The eight strategy definitions drive the selector and
-strategy documentation. Settings receive runtime validation before retrieval.
-Charts plot actual net equity and derived drawdown; monthly returns use month ends.
-
-See the in-app `/docs` page and `src/lib/documentation.ts` for full calculation
-methodology. `docs/AUDIT.md` records the starting checkpoint and benchmark caveat.
-
-## Market data
-
-The `synthetic` provider is deterministic and prominently labelled. Its seeded
-sequence restarts at the requested start date; it omits weekends but not exchange
-holidays. Demo Nifty instruments are simulations, not tradable index cash shares.
-
-The `kite` adapter uses the official licensed historical API, daily candles only:
-
-```dotenv
-KITE_API_KEY=
-KITE_ACCESS_TOKEN=
-KITE_INSTRUMENTS_JSON=[]
-```
-
-1. Obtain a Kite Connect subscription/access permitted for historical data.
-2. Complete the provider's official authentication flow and securely supply the
-   current access token. Token acquisition/renewal is operator-managed; this app
-   never accepts broker credentials in the browser.
-3. Download/use the official instrument master under your licence. Configure
-   an array shaped like `[{"symbol":"YOUR_SYMBOL","name":"Your instrument",
-   "exchange":"NSE","token":123}]`, replacing the illustrative token with the
-   verified current **cash-equity** token. `BSE` is supported only for configured
-   instruments permitted by the provider. Do not configure derivatives/indices
-   as cash equities. No exchange website scraping is used.
-4. Restart/redeploy and select REAL HISTORICAL DATA. Confirm the report's actual
-   available dates and provenance. Invalid OHLC, duplicate/unordered dates,
-   missing fields and out-of-range candles fail visibly. Missing sessions are not
-   manufactured. Empty/failed real requests never use demo data.
-
-The adapter requests disjoint 365-day chunks with timeouts and paced requests.
-Reports record a SHA-256 fingerprint, retrieval time and provider adjustment
-policy. Data may be revised upstream; exact later reproduction requires the same
-licensed dataset. No candle datasets are persisted per report or shipped here.
-Corporate actions/dividends are not independently adjusted; assess provider
-adjustments before interpreting equity research results.
-
-Official references: [historical API](https://kite.trade/docs/connect/v3/historical/),
-[instrument master](https://kite.trade/docs/connect/v3/market-quotes/).
-Verify that your licence permits your deployment and users; a personal API
-subscription does not grant public redistribution rights.
-
-## Costs and execution
-
-Presets: Zero Costs, Zerodha Equity Intraday, Zerodha Equity Delivery, Custom.
-Verified 20 September 2026, resident individual cash-equity assumptions:
-
-| Component | Intraday | Delivery |
-| --- | --- | --- |
-| Brokerage / executed order | min(0.03%, ₹20) | zero |
-| STT | 0.025%, sell side | 0.1%, both sides |
-| NSE exchange | 0.00307%, both sides | same |
-| BSE standard group | 0.00375%, both sides | same |
-| SEBI | ₹10/crore | same |
-| Stamp duty | 0.003%, buy side | 0.015%, buy side |
-| GST | 18% of taxable service charges | same |
-| DP base | none | ₹13 per stock/selling day plus GST |
-
-NSE IPFT is ₹0.01/crore plus GST, tracked separately. DP discounts/special BSE
-groups can use custom costs. Current tariffs apply to all historical dates.
-One simulated lot execution is one order. STT rounds to the nearest rupee per
-order; daily contract-note aggregation/netting may differ. Intraday STT uses the
-round-trip average-price turnover described by Zerodha. DP excludes same-day
-round trips; delivery positions sold the same day are reclassified as intraday.
-Special settlement/auction scenarios and minimum contract-note fees are omitted.
-
-Sources: [official rates](https://zerodha.com/charges),
-[STT basis and rounding](https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/how-is-the-securities-transaction-tax-stt-calculated),
-[DP per stock/day](https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/what-do-dp-charges-mean).
-
-Charges debit actual cash. Integer sizing covers the buy plus entry charges and
-reserves fixed/known exit liabilities. Long entry slippage raises the fill and
-exit slippage lowers it. Gross P&L uses slipped fills; net P&L deducts statutory
-and broker charges once. Informational slippage impact is not deducted again.
-
-Signals at close execute next open. Stops/targets use OHLC with stop-first
-ambiguity handling and gap fills at open. Trailing-stop updates apply next bar.
-Multiple same-symbol lots retain independent risk levels. The start-of-bar lot
-count and prior-close equity govern entry capacity. Final close liquidates open
-positions; intraday mode liquidates each daily close. Risk % is a stop-distance
-sizing model, not a guaranteed maximum loss: gaps and charges can exceed it.
-
-## Strategies and analytics
-
-SMA crossover, EMA crossover, Wilder RSI mean reversion, RSI momentum, prior-bar
-Donchian breakout, rate-of-change momentum, Bollinger lower-band recovery and
-MACD signal crossover. Parameter relationships are validated and indicators
-have explicit warmups. Flat RSI is neutral 50 (corrected from the original 100).
-
-Metrics cover capital, gross/net return, calendar CAGR, net trade statistics,
-profit factor, expectancy, risk/reward, sample annualized volatility, Sharpe,
-Sortino, drawdown dates/recovery, streaks, holding days, session exposure,
-turnover and separate cost/slippage totals. Sharpe uses daily excess portfolio
-returns and sample deviation; Sortino uses negative excess-return squared
-deviation across **all** periods. Annualization is 252 daily sessions. N/A denotes
-undefined ratios. Exposure counts sessions with any lot held, not intraday time.
-
-Up to four runs can be compared. Equity overlays normalize to each run's initial
-capital; missing dates stay gaps. Different datasets/ranges are flagged, without
-declaring a best strategy. CSV and summary JSON export actual current results.
-
-## Persistence and accounts
-
-Browser-local history stores named settings and summaries, up to 100 entries.
-It is device/profile storage, not private account storage; shared devices expose
-these saves. Reopen restores settings for a new run. No candle archives are saved.
-
-Optional production storage uses **Supabase PostgreSQL + Auth**, accessed through
-its authenticated REST query layer, with no additional ORM/server connection pool:
-
-```dotenv
-SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-SUPABASE_ANON_KEY=
-```
-
-1. Create the project and apply `supabase/migrations/202609200001_backtest_runs.sql`
-   in the SQL editor (or through your migration tooling).
-2. Run `supabase/tests/ownership.sql` administratively against a test project;
-   it rolls back its fixtures. Live SQL isolation tests require a configured DB
-   and were not run in the credential-free development environment.
-3. Enable email/password Auth, require email confirmation, configure your site
-   URL, SMTP and provider abuse protections. Set the variables above on the server.
-4. Use the existing **anon** key, never a `service_role`/admin key. Owner RLS is
-   part of the security boundary. Auth users own rows by `auth.uid()`; anonymous
-   users have no table privileges, and changing row ownership is not supported.
-5. Test two different users: user A must not read/delete/insert B's rows.
-
-API identity is obtained from the auth service, never client user IDs. Cloud saves
-rerun settings on the server rather than accepting submitted performance. Access
-tokens stay in HTTP-only, SameSite=Strict cookies (Secure in production); mutation
-routes enforce same origin. Sessions last at most one hour; sign in again after
-expiry. Automatic refresh, self-service password recovery and payment handling
-are not included. Supabase account administration can handle recovery until that
-UI is added. No external account or service was created during development.
-
-## Production deployment
-
-1. Review and import the local commits (or clone the delivered Git bundle).
-   No GitHub push is performed by this work.
-2. Install Node 24 / pnpm 11.25.0 and run `pnpm install --frozen-lockfile`.
-3. Configure optional provider/account variables. For cloud accounts apply and
-   test the migration before enabling them. Leave missing integrations disabled.
-4. Run `pnpm check` and `pnpm audit --prod`; investigate failures before release.
-5. Deploy to a **Node-capable Next.js host**, not static export. Use
-   `pnpm build` and `pnpm start`; set production HTTPS and a suitable PORT.
-   Production secure cookies require HTTPS for cloud sign-in.
-6. Configure trusted proxy/origin handling, TLS/HSTS and gateway/WAF quotas.
-   The app's 60 backtests/minute, two concurrent jobs and 20 auth attempts/minute
-   are **per process**, not distributed abuse prevention. Multi-instance or public
-   deployments need shared/gateway rate limits and licence-appropriate access.
-7. Smoke-test demo, real credentials, provider failures, two-account ownership,
-   saving/reopening/deleting, comparison and CSV download. Verify mobile layout.
-8. Configure logs/monitoring without request bodies, passwords or provider tokens;
-   provision database backups and establish credential rotation with the providers.
-
-Input is capped at 16 KB, data at 4,000 daily bars/ten years, lots at 20 and
-comparison at four. Computation runs server-side. Security headers block framing
-and object embeds; CSP allows inline Next/React bootstrap code and styles.
-Cookie auth mutations require same-origin requests. CSV text cells neutralize
-formula prefixes. Error responses do not expose stack traces. Demo data has no
-secrets or copyrighted historical dataset.
-
-## Future monetization boundary
-
-`src/lib/entitlements.ts` defines Free/Pro feature and resource policies. Both
-currently expose all implemented features. No payment checkout, paid subscription
-or artificial paywall is enabled. The `BillingProvider` interface is the boundary
-for a future verified webhook/checkout adapter. Before enforcing paid plans, add
-authoritative server-side membership storage, provider credentials, signature
-verification, idempotent webhook processing and entitlement enforcement for each
-server operation. Never accept plan claims from the browser.
-
-## Known limitations and regressions
-
-Daily long-only, one instrument/run; no shorting, leverage, partial fills, liquidity
-constraints, price bands, settlement-delay cash blocking, dividends, independent
-split adjustment, or survivorship-free universe construction. Current instrument
-selection can introduce survivorship bias. BSE special groups, exact intraday
-square-off, delivery netting, contract-note rounding and historical tariff changes
-are not fully reconstructed. These are research estimates, not broker contract notes.
-
-Fixed benchmark window: **2023-09-20–2026-09-20**, capital ₹10,00,000, 90% sizing,
-one lot, 100% allocation, disabled risk controls, zero costs:
-
-- SMA 20/50, DEMO-NIFTY50: **8 trades, ₹15,42,508.75**.
-- RSI 14/30/70, DEMO-MIDCAP-A: **4 trades, ₹15,51,418.53**.
-
-The request's RSI figure of 11 was not reproducible on the original checkpoint
-using its defaults. This discrepancy predates all changes; no calculation was
-altered to force it. Both verified zero-cost results remain unchanged.
+© 2026 Isaac Silveira
