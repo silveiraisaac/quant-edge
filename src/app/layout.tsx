@@ -1,13 +1,33 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 
 const themeScript = `(function(){try{var value=localStorage.getItem('quant-edge-theme');document.documentElement.dataset.theme=value==='light'?'light':'dark'}catch(_){document.documentElement.dataset.theme='dark'}})()`;
 
 export const metadata: Metadata = {
-  title: "Quant Edge — Quantitative Strategy Research",
-  description:
-    "Quant Edge: a strategy backtesting platform for Indian equity markets. Currently running in demo mode on synthetic data.",
+  metadataBase: new URL("https://quant-edge-gray.vercel.app"),
+  title: {default:"Quant Edge — Quantitative Strategy Backtesting",template:"%s | Quant Edge"},
+  description: "An independent quantitative strategy backtesting and performance-analysis project built by Isaac Silveira using clearly identified synthetic demonstration data.",
+  applicationName: "Quant Edge",
+  authors: [{name:"Isaac Silveira",url:"https://github.com/silveiraisaac"}],
+  creator: "Isaac Silveira",
+  category: "Quantitative Finance / Software Engineering",
+  keywords: ["quantitative finance","backtesting","financial software","performance analytics","portfolio project"],
+  alternates: {canonical:"/"},
+  openGraph: {
+    type:"website",
+    url:"/",
+    siteName:"Quant Edge",
+    title:"Quant Edge — Quantitative Strategy Backtesting",
+    description:"An independent quantitative strategy backtesting and performance-analysis project built by Isaac Silveira.",
+  },
+  twitter: {
+    card:"summary",
+    title:"Quant Edge — Quantitative Strategy Backtesting",
+    description:"An independent quantitative strategy backtesting and performance-analysis project built by Isaac Silveira.",
+  },
+  robots: {index:true,follow:true},
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -17,12 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <Header />
         <div className="flex-1">{children}</div>
-        <footer className="border-t border-slate-200/80 bg-white/70">
-          <div className="qe-container flex flex-col gap-2 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-            <p>Quant Edge · Long-only Indian cash-equity research</p>
-            <p>Backtested performance does not guarantee future results.</p>
-          </div>
-        </footer>
+        <Footer />
       </body>
     </html>
   );
